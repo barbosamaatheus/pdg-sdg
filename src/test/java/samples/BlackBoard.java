@@ -2,13 +2,13 @@ package samples;
 
 public class BlackBoard {
 
-    public static void main() {
-        int x =0 , y;
-        y = 1; //left
-        if (x > y) {//right
-            x = y+2; // left
-        }else{
-            y = x+3; //right
+    public static int main(){
+        int x, y=1;
+        x=0; //right
+        while (y >10 ) { //left
+            x = 1;
+            return 1;
         }
+        return 2;
     }
 }

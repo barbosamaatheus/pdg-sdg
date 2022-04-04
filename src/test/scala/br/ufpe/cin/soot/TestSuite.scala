@@ -1,6 +1,7 @@
 package br.ufpe.cin.soot
 
 import br.ufpe.cin.soot.basic.{Basic11Test, Basic16Test}
+import br.ufpe.cin.soot.pdg.PDGTest
 import org.scalatest.{BeforeAndAfter, FunSuite, Ignore}
 import samples.FieldSample
 
@@ -13,19 +14,31 @@ class TestSuite extends FunSuite with BeforeAndAfter {
   }
 
   test("we should correctly compute the number of nodes and edges in the BlackBoardTest sample") {
-    val svfa = new BlackBoardTest( Array (7, 9), Array (8, 11))
+    val svfa = new BlackBoardTest( Array (7), Array (8))
 //    val svfa = new BlackBoardTest()
     svfa.buildSparseValueFlowGraph()
-    println(svfa.cd.nodes.size)
-    println(svfa.cd.numberOfEdges())
+    println(svfa.svgcd.nodes.size)
+    println(svfa.svgcd.numberOfEdges())
 
-    println(svfa.reportConflictsCD().size)
-    println(svfa.cdToDotModel())
+    println(svfa.reportConflictsSVGCD() .size)
+    println(svfa.svgcdToDotModel())
 
 //    assert(svfa.svg.nodes.size == 8)
 //    assert(svfa.svg.numberOfEdges() == 11)
 //    assert(svfa.reportConflicts().size == 1)
   }
+
+
+  test("running pdg sprintboot") {
+    val pdg = new PDGTest()
+    pdg.buildSparseValueFlowGraph()
+    println(pdg.cd.nodes.size)
+    println(pdg.cd.numberOfEdges())
+
+    println(pdg.reportConflictsCD().size)
+    println(pdg.cdToDotModel())
+
+   }
 
   test("we should not find any conflict in the BlackBoardTest sample") {
     val svfa = new BlackBoardTest()

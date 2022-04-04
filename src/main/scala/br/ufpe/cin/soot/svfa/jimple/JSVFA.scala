@@ -199,6 +199,7 @@ abstract class JSVFA extends SVFA with Analysis with FieldSensitiveness with Sou
     override def internalTransform(phaseName: String, options: util.Map[String, String]): Unit = {
       pointsToAnalysis = Scene.v().getPointsToAnalysis
       initAllocationSites()
+      Scene.v().getSootClassPath
       Scene.v().getEntryPoints.forEach(method => {
         traverse(method)
         methods = methods + 1
@@ -217,7 +218,7 @@ abstract class JSVFA extends SVFA with Analysis with FieldSensitiveness with Sou
 
     try {
 
-      val unitGraph= new UnitGraphNodes(body, true)
+      val unitGraph= new UnitGraphNodes(body)
 
       val analysis = new MHGPostDominatorsFinder(unitGraph)
 
@@ -225,7 +226,7 @@ abstract class JSVFA extends SVFA with Analysis with FieldSensitiveness with Sou
         var edges = unitGraph.getSuccsOf(unit)
         var ADominators = analysis.getDominators(unit)
 
-//        println(unit, unit.getJavaSourceStartLineNumber())
+        println(unit, unit.getJavaSourceStartLineNumber())
         //Find a path with from unit to edges, using the post-dominator tree, excluding the LCA node
         //Add True and False edge
         var typeEd = true
@@ -260,14 +261,18 @@ abstract class JSVFA extends SVFA with Analysis with FieldSensitiveness with Sou
     val defs  = new SimpleLocalDefs(graph)
 
     body.getUnits.forEach(unit => {
-      val v = Statement.convert(unit)
+      try{
+        val v = Statement.convert(unit)
 
-      v match {
-        case AssignStmt(base) => traverse(AssignStmt(base), method, defs)
-        case InvokeStmt(base) => traverse(InvokeStmt(base), method, defs)
-        case IfStmt(base) => traverse(IfStmt(base), method, defs)
-        case _ if analyze(unit) == SinkNode => traverseSinkStatement(v, method, defs)
-        case _ =>
+        v match {
+          case AssignStmt(base) => traverse(AssignStmt(base), method, defs)
+          case InvokeStmt(base) => traverse(InvokeStmt(base), method, defs)
+          case IfStmt(base) => traverse(IfStmt(base), method, defs)
+          case _ if analyze(unit) == SinkNode => traverseSinkStatement(v, method, defs)
+          case _ =>
+        }
+      }catch {
+        case e: Exception => return
       }
     })
   }
@@ -363,18 +368,28 @@ abstract class JSVFA extends SVFA with Analysis with FieldSensitiveness with Sou
     return res
   }
 
-  def addEdge(source: LambdaNode, target: LambdaNode): Boolean = {
+  def addEdgeSVGCD(source: LambdaNode, target: LambdaNode): Boolean = {
     var res = false
     if(!runInFullSparsenessMode() || true) {
       svgcd.addEdge(source, target)
+      res = true
+    }
+    return res
+  }
+
+  def addEdgeSVG(source: LambdaNode, target: LambdaNode): Boolean = {
+    var res = false
+    if(!runInFullSparsenessMode() || true) {
       svg.addEdge(source, target)
       res = true
     }
     return res
   }
 
+
   private def invokeRule(callStmt: Statement, exp: InvokeExpr, caller: SootMethod, defs: SimpleLocalDefs): Unit = {
-    val callee = exp.getMethod
+
+    var callee = exp.getMethod
 
     if(analyze(callStmt.base) == SinkNode) {
       defsToCallOfSinkMethod(callStmt, exp, caller, defs)

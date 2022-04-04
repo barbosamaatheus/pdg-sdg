@@ -205,7 +205,7 @@ public class UnitGraphNodes extends UnitGraph implements ExceptionalGraph<Unit> 
         buildUnexceptionalEdges(unitToUnexceptionalSuccs, unitToUnexceptionalPreds);
         this.throwAnalysis = throwAnalysis;
 
-        if (!omitExceptingUnitEdges){
+        if (omitExceptingUnitEdges){//!omitExceptingUnitEdges -> no exception edge
             unitToExceptionDests = Collections.emptyMap();
             unitToExceptionalSuccs = Collections.emptyMap();
             unitToExceptionalPreds = Collections.emptyMap();

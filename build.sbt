@@ -3,7 +3,7 @@ scalaVersion := "2.12.8"
 name := "pdg-sdg"
 organization := "br.ufpe.cin"
 
-version := "0.1.0"
+version := "0.2.3"
 
 githubOwner := "spgroup"
 githubRepository := "pdg-sdg"
