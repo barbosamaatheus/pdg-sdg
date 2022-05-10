@@ -1,6 +1,6 @@
 package br.ufpe.cin.soot.svfa
 
-import br.ufpe.cin.soot.graph.{Graph, LambdaNode, SinkNode, SourceNode, StringLabel}
+import br.ufpe.cin.soot.graph.{DefLabel, EdgeLabel, EdgeLabelType, FalseLabel, Graph, LambdaNode, LoopLabel, SinkNode, SourceNode, StringLabel, TrueLabel}
 
 import java.io.File
 import soot._
@@ -26,6 +26,7 @@ abstract class SVFA {
   var svg = new Graph()
   var cd = new Graph()
   var svgcd = new Graph()
+  var pdg = new Graph()
 
   def sootClassPath(): String
 
@@ -172,6 +173,26 @@ abstract class SVFA {
     }
   }
 
+  def findConflictingPathsPDG(): scala.collection.Set[List[LambdaNode]] = {
+    if (pdg.fullGraph) {
+      val conflicts = pdg.findPathsFullGraph()
+      return conflicts.toSet
+    } else {
+      val sourceNodes = pdg.nodes.filter(n => n.nodeType == SourceNode)
+      val sinkNodes = pdg.nodes.filter(n => n.nodeType == SinkNode)
+
+      var conflicts: List[List[LambdaNode]] = List()
+      sourceNodes.foreach(source => {
+        sinkNodes.foreach(sink => {
+          val paths = pdg.findPath(source, sink)
+          conflicts = conflicts ++ paths
+        })
+      })
+
+      conflicts.filter(p => p.nonEmpty).toSet
+    }
+  }
+
   def reportConflictsCD(): scala.collection.Set[String] =
     findConflictingPathsCD().map(p => p.toString)
 
@@ -180,6 +201,9 @@ abstract class SVFA {
 
   def reportConflictsSVGCD(): scala.collection.Set[String] =
     findConflictingPathsSVGCD().map(p => p.toString)
+
+  def reportConflictsPDG(): scala.collection.Set[String] =
+    findConflictingPathsPDG().map(p => p.toString)
 
   def reportConflicts(): scala.collection.Set[String] =
     findConflictingPaths().map(p => p.toString)
@@ -211,6 +235,7 @@ abstract class SVFA {
       var x = i.value.label
       var cd = new StringLabel("TrueEdge")
       var cdFalse = new StringLabel("FalseEdge")
+      var loopEdge = new StringLabel("LoopEdge")
       if (x.isInstanceOf[StringLabel]) {
 
         var auxStr = ""
@@ -226,12 +251,15 @@ abstract class SVFA {
 
         var cdEdge = (cd.asInstanceOf[StringLabel]).edgeType.toString
         var cdEdgeFalse = (cdFalse.asInstanceOf[StringLabel]).edgeType.toString
+        var loopEd = (loopEdge.asInstanceOf[StringLabel]).edgeType.toString
         var a = (x.asInstanceOf[StringLabel]).edgeType.toString
         if (a.equals(cdEdge)) { //If is Control Dependence Edge
           s ++= " "+auxStr + "[penwidth=3][label=\"T\"]" + "\n"
         } else if (a.equals(cdEdgeFalse)) {
           s ++= " "+auxStr + "[penwidth=3][label=\"F\"]" + "\n"
-        } else{
+        } else if (a.equals(loopEd)){
+          s ++= " "+auxStr + "[penwidth=2][style=dashed]" + "\n"
+        }else{
           s ++= " "+auxStr + "\n"
         }
       }
@@ -275,6 +303,7 @@ abstract class SVFA {
       var x = i.value.label
       var cd = new StringLabel("TrueEdge")
       var cdFalse = new StringLabel("FalseEdge")
+      var loopEdge = new StringLabel("LoopEdge")
       if (x.isInstanceOf[StringLabel]) {
 
         var auxStr = ""
@@ -290,12 +319,15 @@ abstract class SVFA {
 
         var cdEdge = (cd.asInstanceOf[StringLabel]).edgeType.toString
         var cdEdgeFalse = (cdFalse.asInstanceOf[StringLabel]).edgeType.toString
+        var loopEd = (loopEdge.asInstanceOf[StringLabel]).edgeType.toString
         var a = (x.asInstanceOf[StringLabel]).edgeType.toString
         if (a.equals(cdEdge)) { //If is Control Dependence Edge
           s ++= " "+auxStr + "[penwidth=3][label=\"T\"]" + "\n"
         } else if (a.equals(cdEdgeFalse)) {
           s ++= " "+auxStr + "[penwidth=3][label=\"F\"]" + "\n"
-        } else{
+        } else if (a.equals(loopEd)){
+          s ++= " "+auxStr + "[penwidth=2][style=dashed]" + "\n"
+        }else{
           s ++= " "+auxStr + "\n"
         }
       }
@@ -328,6 +360,8 @@ abstract class SVFA {
       var x = i.value.label
       var cd = new StringLabel("TrueEdge")
       var cdFalse = new StringLabel("FalseEdge")
+      var loopEdge = new StringLabel("LoopEdge")
+
       if (x.isInstanceOf[StringLabel]) {
 
         var auxStr = ""
@@ -343,12 +377,15 @@ abstract class SVFA {
 
         var cdEdge = (cd.asInstanceOf[StringLabel]).edgeType.toString
         var cdEdgeFalse = (cdFalse.asInstanceOf[StringLabel]).edgeType.toString
+        var loopEd = (loopEdge.asInstanceOf[StringLabel]).edgeType.toString
         var a = (x.asInstanceOf[StringLabel]).edgeType.toString
         if (a.equals(cdEdge)) { //If is Control Dependence Edge
           s ++= " "+auxStr + "[penwidth=3][label=\"T\"]" + "\n"
         } else if (a.equals(cdEdgeFalse)) {
           s ++= " "+auxStr + "[penwidth=3][label=\"F\"]" + "\n"
-        } else{
+        } else if (a.equals(loopEd)){
+          s ++= " "+auxStr + "[penwidth=2][style=dashed]" + "\n"
+        }else{
           s ++= " "+auxStr + "\n"
         }
       }
@@ -359,5 +396,56 @@ abstract class SVFA {
     return s.toString()
   }
 
+  def pdgToDotModel(): String = {
+    val s = new StringBuilder
+    var nodeColor = ""
+    s ++= "digraph { \n"
+
+    for(n <- pdg.nodes) {
+      nodeColor = n.nodeType match  {
+        case SourceNode => "[fillcolor=blue, style=filled]"
+        case SinkNode   => "[fillcolor=red, style=filled]"
+        case _          => ""
+      }
+
+      s ++= " " + "\"" + n.show() + "\"" + nodeColor + "\n"
+    }
+
+    var edgeNodes = pdg.graph.edges.toOuter
+
+    for (i <- edgeNodes) {
+      var x = i.value.label
+
+      var auxStr = ""
+      var cont = 0
+      for (auxNode <- i) {
+        if (cont == 0) {
+          auxStr += "\"" + auxNode.show();
+        } else {
+          auxStr += "\"" + " -> " + "\"" + auxNode.show() + "\"";
+        }
+        cont += +1
+      }
+
+      if (x.isInstanceOf[EdgeLabel]) {
+        val labelType = x.asInstanceOf[EdgeLabel].labelType
+
+        if (labelType.toString.equals(TrueLabel.toString)) {
+          s ++= " " + auxStr + "[penwidth=3][label=\"T\"]" + "\n"
+        } else if (labelType.toString.equals(FalseLabel.toString)) {
+          s ++= " " + auxStr + "[penwidth=3][label=\"F\"]" + "\n"
+        } else if (labelType.toString.equals(DefLabel.toString)) {
+          s ++= " " + auxStr + "[style=dashed, color=black]" + "\n"
+        } else {
+          s ++= " " + auxStr + "\n"
+        }
+      } else if (x.isInstanceOf[StringLabel]) {
+        s ++= " " + auxStr + "\n"
+      }
+    }
+    s ++= "}"
+
+    return s.toString()
+  }
 
 }

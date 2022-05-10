@@ -1,6 +1,6 @@
 package br.ufpe.cin.soot.graph
 
-import scalax.collection.edge.LDiEdge
+import scalax.collection.edge.LkDiEdge
 
 import scala.collection.immutable.HashSet
 
@@ -19,6 +19,8 @@ sealed trait EdgeType
 case object SimpleEdge extends EdgeType { def instance: SimpleEdge.type = this }
 case object TrueEdge extends EdgeType { def instance: TrueEdge.type = this }
 case object FalseEdge extends EdgeType { def instance: FalseEdge.type = this }
+case object LoopEdge extends EdgeType { def instance: LoopEdge.type = this }
+case object DefEdge extends EdgeType { def instance: DefEdge.type = this }
 
 
 class StringLabel(label: String) extends LambdaLabel {
@@ -41,6 +43,10 @@ object EdgeType {
       TrueEdge
     } else if (edge.equals(FalseEdge.toString)) {
       FalseEdge
+    }else if (edge.equals(LoopEdge.toString)){
+      LoopEdge
+    }else if (edge.equals(DefEdge.toString)){
+      DefEdge
     }
     else SimpleEdge
   }
@@ -64,6 +70,7 @@ trait GraphNode {
   * it is enough for the analysis, but for some situations, something
   * specific for Jimple or Shimple abstractions can be a better option.
   */
+
 case class StmtDef(className: String, method: String, stmt: String, line: Int)
 
 /*
@@ -101,7 +108,6 @@ case class StatementNode(stmt: StmtDef, stmtType: NodeType) extends LambdaNode {
   override def hashCode(): Int = 2 * stmt.hashCode() + nodeType.hashCode()
 }
 
-
 /*
   * This trait define the base for all other labels classifications, like the NodeType
   * the LabelType is used to inform things relevant for the analysis like context sensitive
@@ -119,6 +125,11 @@ sealed trait CallSiteLabelType extends LabelType
 case object CallSiteOpenLabel extends CallSiteLabelType { def instance: CallSiteOpenLabel.type = this }
 case object CallSiteCloseLabel extends CallSiteLabelType { def instance: CallSiteCloseLabel.type = this }
 
+case object LoopLabel extends LabelType { def instance: LoopLabel.type = this }
+case object TrueLabel extends LabelType { def instance: TrueLabel.type = this }
+case object FalseLabel extends LabelType { def instance: FalseLabel.type = this }
+case object DefLabel extends LabelType { def instance: DefLabel.type = this }
+
 /*
   * Like the graph nodes, the edge labels can be customized and this trait
   * define the abstraction needed to possibility the customization,
@@ -130,13 +141,9 @@ trait EdgeLabel {
   val labelType: LabelType
 }
 
-//case class StringLabel(label: String) extends EdgeLabel {
-//  override type T = String
-//  override var value = label
-//  override val labelType: LabelType = SimpleLabel
-//}
-
 case class ContextSensitiveRegion(statement: Statement, calleeMethod: String)
+
+case class ContextStatement(statement: Statement, unit: soot.Unit)
 
 case class CallSiteLabel(csRegion: ContextSensitiveRegion, labelType: CallSiteLabelType) extends EdgeLabel {
   override type T = ContextSensitiveRegion
@@ -179,6 +186,19 @@ case class CallSiteLabel(csRegion: ContextSensitiveRegion, labelType: CallSiteLa
   }
 }
 
+case class EdgeLabelType(context: ContextStatement, labelType: LabelType) extends EdgeLabel {
+  override type T = ContextStatement
+  override var value = context
+
+  override def equals(o: Any): Boolean = {
+    o match {
+      case label: EdgeLabelType =>
+        return value == label.value && labelType == label.labelType
+      case _ => false
+    }
+  }
+}
+
 case class FieldReference(className: String, field: String)
 
 case class FieldSensitiveLabel(fieldRef: FieldReference, labelType: FieldSensitiveLabelType) extends EdgeLabel {
@@ -212,14 +232,14 @@ case class FieldSensitiveLabel(fieldRef: FieldReference, labelType: FieldSensiti
 case class GraphEdge(from: LambdaNode, to: LambdaNode, label: EdgeLabel)
 
 class Graph() {
-  val graph = scalax.collection.mutable.Graph.empty[LambdaNode, LDiEdge]
+  val graph = scalax.collection.mutable.Graph.empty[LambdaNode, LkDiEdge]
 
   var fullGraph: Boolean = false
   var allPaths: Boolean = false
   var optimizeGraph: Boolean = false
 
   def gNode(outerNode: LambdaNode): graph.NodeT = graph.get(outerNode)
-  def gEdge(outerEdge: LDiEdge[LambdaNode]): graph.EdgeT = graph.get(outerEdge)
+  def gEdge(outerEdge: LkDiEdge[LambdaNode]): graph.EdgeT = graph.get(outerEdge)
 
   def contains(node: LambdaNode): Boolean = {
     val graphNode = graph.find(node)
@@ -239,11 +259,11 @@ class Graph() {
   }
 
   def addEdge(source: LambdaNode, target: LambdaNode, label: LambdaLabel): Unit = {
-    if(source == target) {
+    /*if(source == target) { //Return edge
       return
-    }
+    }*/
 
-    implicit val factory = scalax.collection.edge.LDiEdge
+    implicit val factory = scalax.collection.edge.LkDiEdge
     graph.addLEdge(source, target)(label)
   }
 
@@ -253,7 +273,7 @@ class Graph() {
       return
     }
 
-    implicit val factory = scalax.collection.edge.LDiEdge
+    implicit val factory = scalax.collection.edge.LkDiEdge
     graph.addLEdge(source, target)(label)
   }
 

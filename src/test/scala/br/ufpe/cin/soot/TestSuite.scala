@@ -1,9 +1,16 @@
 package br.ufpe.cin.soot
 
 import br.ufpe.cin.soot.basic.{Basic11Test, Basic16Test}
+import br.ufpe.cin.soot.graph.GraphEdge
 import br.ufpe.cin.soot.pdg.PDGTest
 import org.scalatest.{BeforeAndAfter, FunSuite, Ignore}
 import samples.FieldSample
+import scalax.collection.GraphEdge
+import scalax.collection.GraphEdge.{DiEdge, ~>}
+import scalax.collection.GraphPredef.EdgeAssoc
+import scalax.collection.edge.LkDiEdge
+import scalax.collection.edge.LDiEdge
+import scalax.collection.mutable.Graph
 
 class TestSuite extends FunSuite with BeforeAndAfter {
 
@@ -14,14 +21,14 @@ class TestSuite extends FunSuite with BeforeAndAfter {
   }
 
   test("we should correctly compute the number of nodes and edges in the BlackBoardTest sample") {
-    val svfa = new BlackBoardTest( Array (7), Array (8))
-//    val svfa = new BlackBoardTest()
+//    val svfa = new BlackBoardTest( Array (7), Array (9))
+    val svfa = new BlackBoardTest()
     svfa.buildSparseValueFlowGraph()
-    println(svfa.svgcd.nodes.size)
-    println(svfa.svgcd.numberOfEdges())
+    println(svfa.pdg.nodes.size)
+    println(svfa.pdg.numberOfEdges())
 
-    println(svfa.reportConflictsSVGCD() .size)
-    println(svfa.svgcdToDotModel())
+    println(svfa.reportConflictsPDG().size)
+    println(svfa.pdgToDotModel())
 
 //    assert(svfa.svg.nodes.size == 8)
 //    assert(svfa.svg.numberOfEdges() == 11)

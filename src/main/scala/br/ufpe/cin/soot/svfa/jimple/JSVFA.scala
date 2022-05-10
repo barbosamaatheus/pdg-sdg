@@ -1,20 +1,19 @@
 package br.ufpe.cin.soot.svfa.jimple
 
 import br.ufpe.cin.soot.graph
-import br.ufpe.cin.soot.graph.{CallSiteCloseLabel, CallSiteLabel, CallSiteOpenLabel, ContextSensitiveRegion, FalseEdge, FieldReference, FieldSensitiveLabel, FieldSensitiveLoadLabel, FieldSensitiveStoreLabel, LambdaNode, SimpleNode, SinkNode, SourceNode, StatementNode, StmtDef, StringLabel, TrueEdge, UnitDummy, UnitGraphNodes}
+import br.ufpe.cin.soot.graph.{CallSiteCloseLabel, CallSiteLabel, CallSiteOpenLabel, ContextSensitiveRegion, ContextStatement, DefLabel, EdgeLabel, EdgeLabelType, FalseEdge, FalseLabel, FieldReference, FieldSensitiveLabel, FieldSensitiveLoadLabel, FieldSensitiveStoreLabel, LambdaNode, LoopEdge, LoopLabel, SimpleNode, SinkNode, SourceNode, StatementNode, StmtDef, StringLabel, TrueEdge, TrueLabel, UnitDummy, UnitGraphNodes}
 import br.ufpe.cin.soot.svfa.{SVFA, SourceSinkDef}
 import br.ufpe.cin.soot.svfa.jimple.dsl.{DSL, LanguageParser}
 import br.ufpe.cin.soot.svfa.jimple.rules.RuleAction
 
 import java.util
-
 import com.typesafe.scalalogging.LazyLogging
 import soot.jimple._
 import soot.jimple.internal.{JArrayRef, JAssignStmt}
 import soot.jimple.spark.pag
 import soot.jimple.spark.pag.{AllocNode, PAG, StringConstantNode}
 import soot.jimple.spark.sets.{DoublePointsToSet, HybridPointsToSet, P2SetVisitor}
-import soot.toolkits.graph.{ExceptionalUnitGraph, MHGPostDominatorsFinder}
+import soot.toolkits.graph.{BlockGraph, ExceptionalUnitGraph, LoopNestTree, MHGPostDominatorsFinder}
 import soot.toolkits.scalar.SimpleLocalDefs
 import soot.{ArrayType, Local, Scene, SceneTransformer, SootField, SootMethod, Transform, jimple}
 
@@ -34,6 +33,7 @@ abstract class JSVFA extends SVFA with Analysis with FieldSensitiveness with Sou
   val allocationSites = scala.collection.mutable.HashMap.empty[soot.Value, soot.Unit]
   val arrayStores = scala.collection.mutable.HashMap.empty[Local, List[soot.Unit]]
   val languageParser = new LanguageParser(this)
+  var listDef : List[(AssignStmt, StatementNode)] = List()
 
   val methodRules = languageParser.evaluate(code())
 
@@ -213,52 +213,52 @@ abstract class JSVFA extends SVFA with Analysis with FieldSensitiveness with Sou
     }
 
     traversedMethods.add(method)
-
     val body  = method.retrieveActiveBody()
 
-    try {
 
-      val unitGraph= new UnitGraphNodes(body)
+        try {
 
-      val analysis = new MHGPostDominatorsFinder(unitGraph)
+                val unitGraph= new UnitGraphNodes(body)
 
-      unitGraph.forEach(unit => {
-        var edges = unitGraph.getSuccsOf(unit)
-        var ADominators = analysis.getDominators(unit)
+                val analysis = new MHGPostDominatorsFinder(unitGraph)
 
-        println(unit, unit.getJavaSourceStartLineNumber())
-        //Find a path with from unit to edges, using the post-dominator tree, excluding the LCA node
-        //Add True and False edge
-        var typeEd = true
-        var count = 0
-        edges.forEach(unitAux =>{
-          var BDominators = analysis.getDominators(unitAux)
-          var dItB = BDominators.iterator
-          while (dItB.hasNext()) {
-            val dsB = dItB.next()
-            if (!ADominators.contains(dsB)){
-              if (count > 0){
-                typeEd = false
-              } else {
-                typeEd = true //The first time is true
+                unitGraph.forEach(unit => {
+                  var edges = unitGraph.getSuccsOf(unit)
+                  var ADominators = analysis.getDominators(unit)
+
+          //        println(unit, unit.getJavaSourceStartLineNumber())
+                  //Find a path with from unit to edges, using the post-dominator tree, excluding the LCA node
+                  //Add True and False edge
+                  var typeEd = true
+                  var count = 0
+                  edges.forEach(unitAux =>{
+                    var BDominators = analysis.getDominators(unitAux)
+                    var dItB = BDominators.iterator
+                    while (dItB.hasNext()) {
+                      val dsB = dItB.next()
+                      if (!ADominators.contains(dsB)){
+                        if (count > 0){
+                          typeEd = false
+                        } else {
+                          typeEd = true //The first time is true
+                        }
+                        addControlDependenceEdge(unit, dsB, typeEd, method)
+                      }
+                    }
+                    count = count + 1
+                  })
+                })
+              } catch {
+                case e: NullPointerException => {
+                  println ("Error creating node, an invalid statement.")
+                }
+                case e: Exception => {
+                  println ("An invalid statement.")
+                }
               }
-              addControlDependenceEdge(unit, dsB, typeEd, method)
-            }
-          }
-          count = count + 1
-        })
-      })
-    } catch {
-      case e: NullPointerException => {
-        println ("Error creating node, an invalid statement.")
-      }
-      case e: Exception => {
-        println ("An invalid statement.")
-      }
-    }
 
-    val graph = new ExceptionalUnitGraph(body)
-    val defs  = new SimpleLocalDefs(graph)
+      val graph = new ExceptionalUnitGraph(body)
+      val defs  = new SimpleLocalDefs(graph)
 
     body.getUnits.forEach(unit => {
       try{
@@ -275,8 +275,55 @@ abstract class JSVFA extends SVFA with Analysis with FieldSensitiveness with Sou
         case e: Exception => return
       }
     })
+
+
+//    Criar uma lista de defs
+//    Pegar os pares
+
+    body.getUnits.forEach(unit => {
+      try{
+        val v = Statement.convert(unit)
+
+        v match {
+          case AssignStmt(base) => traverseDef(AssignStmt(base), unit, method, defs)
+          case _ =>
+        }
+      }catch {
+        case e: Exception => return
+      }
+    })
+
+    for (i <- 0 until listDef.length-1) {
+      for (j <- i+1 until listDef.length-1){
+        if (listDef(i)._1.stmt.getLeftOp == listDef(j)._1.stmt.getLeftOp){ //pegando os pares
+//          println(listDef(i)+" igual "+listDef(j))
+
+          //Verificar se os próximo nó no grafo, tem nos dois então, adiciona uma aresta de i para j
+          //-> Falta isso
+          val nextI = svg.getAdjacentNodes(listDef(i)._2).get
+          val nextJ = svg.getAdjacentNodes(listDef(j)._2).get
+
+          nextI.foreach(nodeI=>{
+            nextJ.foreach(nodeJ=>{
+              if (nodeI.equals(nodeJ)){ //Add aresta
+//                println("Add Aresta de "+listDef(i)._1+" para "+listDef(j)._1)
+                addDefEdges(listDef(i)._1.stmt, listDef(j)._1.stmt, method)
+              }
+            })
+          })
+        }
+      }
+    }
+
+    //    Fazer busca no grafo
+//      Se nó atual é igual ao da lista:
+//        Verifique se existe um nó final em comum
   }
 
+  def traverseDef(assignStmt: AssignStmt, unit: soot.Unit, method: SootMethod, defs: SimpleLocalDefs) : Unit = {
+    val node = createNode(method, unit)
+    listDef = listDef:+ (assignStmt, node)
+  }
 
   def traverse(assignStmt: AssignStmt, method: SootMethod, defs: SimpleLocalDefs) : Unit = {
     val left = assignStmt.stmt.getLeftOp
@@ -328,6 +375,16 @@ abstract class JSVFA extends SVFA with Analysis with FieldSensitiveness with Sou
     invokeRule(stmt, exp, method, defs)
   }
 
+  def addDefEdges(s: soot.Unit, t: soot.Unit, method: SootMethod): Unit = {
+    if (s.isInstanceOf[GotoStmt] || t.isInstanceOf[GotoStmt]) return
+    var source = createNode(method, s)
+    var target = createNode(method, t)
+
+    val auxLabel = createDefEdgeLabel(s, t, method)
+
+    addLoopEdge(source, target, auxLabel)
+  }
+
   def addControlDependenceEdge(s: soot.Unit, t: soot.Unit, typeEdge: Boolean, method: SootMethod): Unit = {
     if (s.isInstanceOf[GotoStmt] || t.isInstanceOf[GotoStmt]) return
     var source = createNode(method, s)
@@ -340,8 +397,9 @@ abstract class JSVFA extends SVFA with Analysis with FieldSensitiveness with Sou
     if (t.isInstanceOf[UnitDummy]){
       target = createDummyNode(t, method)
     }
+    val label = if (typeEdge) (createTrueEdgeLabel(s, t, method)) else (createFalseEdgeLabel(s, t, method))
 
-    addEdgeControlDependence(source, target, typeEdge)
+    addEdgeControlDependence(source, target, label)
   }
 
   def createDummyNode(unit: soot.Unit, method: SootMethod): StatementNode = {
@@ -357,11 +415,21 @@ abstract class JSVFA extends SVFA with Analysis with FieldSensitiveness with Sou
     return node
   }
 
-  def addEdgeControlDependence(source: LambdaNode, target: LambdaNode, typeEdge: Boolean): Boolean = {
+  def addLoopEdge(source: LambdaNode, target: LambdaNode, label: EdgeLabel): Boolean = {
     var res = false
     if(!runInFullSparsenessMode() || true) {
-      val label = new StringLabel( if (typeEdge) (TrueEdge.toString) else (FalseEdge.toString))
+//      val label = createLoopEdgeLabel()
+      pdg.addEdge(source, target, label)
+      res = true
+    }
+    return res
+  }
+
+  def addEdgeControlDependence(source: LambdaNode, target: LambdaNode, label: EdgeLabelType): Boolean = {
+    var res = false
+    if(!runInFullSparsenessMode() || true) {
       svgcd.addEdge(source, target, label)
+      pdg.addEdge(source, target, label)
       cd.addEdge(source, target, label)
       res = true
     }
@@ -372,6 +440,7 @@ abstract class JSVFA extends SVFA with Analysis with FieldSensitiveness with Sou
     var res = false
     if(!runInFullSparsenessMode() || true) {
       svgcd.addEdge(source, target)
+      pdg.addEdge(source, target)
       res = true
     }
     return res
@@ -779,7 +848,6 @@ abstract class JSVFA extends SVFA with Analysis with FieldSensitiveness with Sou
   def createNode(method: SootMethod, stmt: soot.Unit): StatementNode =
     StatementNode(StmtDef(method.getDeclaringClass.toString, method.getSignature, stmt.toString, stmt.getJavaSourceStartLineNumber), analyze(stmt))
 
-
   def createCSOpenLabel(method: SootMethod, stmt: soot.Unit, callee: SootMethod): CallSiteLabel = {
     val statement = graph.Statement(method.getDeclaringClass.toString, method.getSignature, stmt.toString, stmt.getJavaSourceStartLineNumber)
     CallSiteLabel(ContextSensitiveRegion(statement, callee.toString), CallSiteOpenLabel)
@@ -788,6 +856,26 @@ abstract class JSVFA extends SVFA with Analysis with FieldSensitiveness with Sou
   def createCSCloseLabel(method: SootMethod, stmt: soot.Unit, callee: SootMethod): CallSiteLabel = {
     val statement = graph.Statement(method.getDeclaringClass.toString, method.getSignature, stmt.toString, stmt.getJavaSourceStartLineNumber)
     CallSiteLabel(ContextSensitiveRegion(statement, callee.toString), CallSiteCloseLabel)
+  }
+
+  def createLoopEdgeLabel(source: soot.Unit, target: soot.Unit, method: SootMethod): EdgeLabelType = {
+    val statement = graph.Statement(method.getDeclaringClass.toString, method.getSignature, source.toString, source.getJavaSourceStartLineNumber)
+    EdgeLabelType(ContextStatement(statement, target), LoopLabel)
+  }
+
+  def createTrueEdgeLabel(source: soot.Unit, target: soot.Unit, method: SootMethod): EdgeLabelType = {
+    val statement = graph.Statement(method.getDeclaringClass.toString, method.getSignature, source.toString, source.getJavaSourceStartLineNumber)
+    EdgeLabelType(ContextStatement(statement, target), TrueLabel)
+  }
+
+  def createFalseEdgeLabel(source: soot.Unit, target: soot.Unit, method: SootMethod): EdgeLabelType = {
+    val statement = graph.Statement(method.getDeclaringClass.toString, method.getSignature, source.toString, source.getJavaSourceStartLineNumber)
+    EdgeLabelType(ContextStatement(statement, target), FalseLabel)
+  }
+
+  def createDefEdgeLabel(source: soot.Unit, target: soot.Unit, method: SootMethod): EdgeLabelType = {
+    val statement = graph.Statement(method.getDeclaringClass.toString, method.getSignature, source.toString, source.getJavaSourceStartLineNumber)
+    EdgeLabelType(ContextStatement(statement, target), DefLabel)
   }
 
   def createFieldSensitiveStoreLabel(fieldRef: InstanceFieldRef): FieldSensitiveLabel = {
@@ -891,6 +979,7 @@ abstract class JSVFA extends SVFA with Analysis with FieldSensitiveness with Sou
     if(!runInFullSparsenessMode() || true) {
       svg.addEdge(source, target)
       svgcd.addEdge(source, target)
+      pdg.addEdge(source, target)
       res = true
     }
 
