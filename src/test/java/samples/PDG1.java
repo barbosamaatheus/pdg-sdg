@@ -1,6 +1,6 @@
 package samples;
 
-public class BlackBoard {
+public class PDG1 {
     public static int main(){
         int sum, x;
         sum = 0;

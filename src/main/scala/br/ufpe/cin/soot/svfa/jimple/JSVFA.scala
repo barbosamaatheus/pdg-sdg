@@ -13,7 +13,7 @@ import soot.jimple.internal.{JArrayRef, JAssignStmt}
 import soot.jimple.spark.pag
 import soot.jimple.spark.pag.{AllocNode, PAG, StringConstantNode}
 import soot.jimple.spark.sets.{DoublePointsToSet, HybridPointsToSet, P2SetVisitor}
-import soot.toolkits.graph.{BlockGraph, ExceptionalUnitGraph, LoopNestTree, MHGPostDominatorsFinder}
+import soot.toolkits.graph.{BlockGraph, ExceptionalBlockGraph, ExceptionalUnitGraph, LoopNestTree, MHGPostDominatorsFinder}
 import soot.toolkits.scalar.SimpleLocalDefs
 import soot.{ArrayType, Local, Scene, SceneTransformer, SootField, SootMethod, Transform, jimple}
 
@@ -33,7 +33,7 @@ abstract class JSVFA extends SVFA with Analysis with FieldSensitiveness with Sou
   val allocationSites = scala.collection.mutable.HashMap.empty[soot.Value, soot.Unit]
   val arrayStores = scala.collection.mutable.HashMap.empty[Local, List[soot.Unit]]
   val languageParser = new LanguageParser(this)
-  var listDef : List[(AssignStmt, StatementNode)] = List()
+  var listDef : List[(AssignStmt, StatementNode, Int)] = List()
 
   val methodRules = languageParser.evaluate(code())
 
@@ -257,8 +257,8 @@ abstract class JSVFA extends SVFA with Analysis with FieldSensitiveness with Sou
                 }
               }
 
-      val graph = new ExceptionalUnitGraph(body)
-      val defs  = new SimpleLocalDefs(graph)
+    val graph = new ExceptionalUnitGraph(body)
+    val defs  = new SimpleLocalDefs(graph)
 
     body.getUnits.forEach(unit => {
       try{
@@ -268,24 +268,24 @@ abstract class JSVFA extends SVFA with Analysis with FieldSensitiveness with Sou
           case AssignStmt(base) => traverse(AssignStmt(base), method, defs)
           case InvokeStmt(base) => traverse(InvokeStmt(base), method, defs)
           case IfStmt(base) => traverse(IfStmt(base), method, defs)
+          case ReturnStmt(base) => traverse(ReturnStmt(base), method, defs)
           case _ if analyze(unit) == SinkNode => traverseSinkStatement(v, method, defs)
           case _ =>
         }
+
       }catch {
         case e: Exception => return
       }
     })
 
-
-//    Criar uma lista de defs
-//    Pegar os pares
+    val graphBlock = new ExceptionalBlockGraph(body)
 
     body.getUnits.forEach(unit => {
       try{
         val v = Statement.convert(unit)
 
         v match {
-          case AssignStmt(base) => traverseDef(AssignStmt(base), unit, method, defs)
+          case AssignStmt(base) => traverseDef(AssignStmt(base), unit, method, graphBlock)
           case _ =>
         }
       }catch {
@@ -293,36 +293,48 @@ abstract class JSVFA extends SVFA with Analysis with FieldSensitiveness with Sou
       }
     })
 
-    for (i <- 0 until listDef.length-1) {
-      for (j <- i+1 until listDef.length-1){
-        if (listDef(i)._1.stmt.getLeftOp == listDef(j)._1.stmt.getLeftOp){ //pegando os pares
-//          println(listDef(i)+" igual "+listDef(j))
+    if (listDef.length>0){
+      for (i <- 0 until listDef.length) {
+        for (j <- i+1 until listDef.length){
+          if (listDef(i)._1.stmt.getLeftOp == listDef(j)._1.stmt.getLeftOp){
 
-          //Verificar se os próximo nó no grafo, tem nos dois então, adiciona uma aresta de i para j
-          //-> Falta isso
-          val nextI = svg.getAdjacentNodes(listDef(i)._2).get
-          val nextJ = svg.getAdjacentNodes(listDef(j)._2).get
+            try {
+              val nextI = svg.getAdjacentNodes(listDef(i)._2).get
+              val nextJ = svg.getAdjacentNodes(listDef(j)._2).get
 
-          nextI.foreach(nodeI=>{
-            nextJ.foreach(nodeJ=>{
-              if (nodeI.equals(nodeJ)){ //Add aresta
-//                println("Add Aresta de "+listDef(i)._1+" para "+listDef(j)._1)
-                addDefEdges(listDef(i)._1.stmt, listDef(j)._1.stmt, method)
-              }
-            })
-          })
+              val xx = listDef(i)._1.stmt
+              val yy = listDef(j)._1.stmt
+              val bx = listDef(i)._3
+              val by = listDef(j)._3
+
+              nextI.foreach(nodeI=>{
+                nextJ.foreach(nodeJ=>{
+                  if (nodeI.equals(nodeJ)){ //Add edge
+                    addDefEdges(listDef(i)._1.stmt, listDef(j)._1.stmt, method)
+                  }
+                })
+              })
+            }catch{
+              case e => print(e)
+            }
+          }
         }
       }
     }
-
-    //    Fazer busca no grafo
-//      Se nó atual é igual ao da lista:
-//        Verifique se existe um nó final em comum
   }
 
-  def traverseDef(assignStmt: AssignStmt, unit: soot.Unit, method: SootMethod, defs: SimpleLocalDefs) : Unit = {
+  def traverseDef(assignStmt: AssignStmt, unit: soot.Unit, method: SootMethod, graph: ExceptionalBlockGraph) : Unit = {
     val node = createNode(method, unit)
-    listDef = listDef:+ (assignStmt, node)
+    var branch = -1
+
+    graph.forEach(block => {
+      block.forEach(u =>{
+        if (u.equals(unit)){
+          branch = block.getIndexInMethod
+        }
+      })
+    })
+    listDef = listDef:+ (assignStmt, node, branch)
   }
 
   def traverse(assignStmt: AssignStmt, method: SootMethod, defs: SimpleLocalDefs) : Unit = {
@@ -339,6 +351,19 @@ abstract class JSVFA extends SVFA with Analysis with FieldSensitiveness with Sou
       case (p: JArrayRef, _) => storeArrayRule(assignStmt)
       case _ =>
     }
+  }
+
+  def traverse(stmt: ReturnStmt, method: SootMethod, defs: SimpleLocalDefs) : Unit = {
+    val op = stmt.stmt.getUseBoxes
+
+    op.forEach(useBox => {
+      (useBox.getValue) match {
+        case (q: InstanceFieldRef) => loadRule(stmt.stmt, q, method, defs)
+        case (q: ArrayRef) => loadArrayRule(stmt.stmt, q, method, defs)
+        case (q: Local) => copyRule(stmt.stmt, q, method, defs)
+        case _ =>
+      }
+    })
   }
 
   def traverse(stmt: IfStmt, method: SootMethod, defs: SimpleLocalDefs) : Unit = {
@@ -661,7 +686,7 @@ abstract class JSVFA extends SVFA with Analysis with FieldSensitiveness with Sou
   private def defsToCallSite(caller: SootMethod, callee: SootMethod, calleeDefs: SimpleLocalDefs, callStmt: soot.Unit, retStmt: soot.Unit) = {
     val target = createNode(caller, callStmt)
 
-    val local = retStmt.asInstanceOf[ReturnStmt].getOp.asInstanceOf[Local]
+    val local = retStmt.asInstanceOf[ReturnStmt].stmt.getOp.asInstanceOf[Local]
     calleeDefs.getDefsOfAt(local, retStmt).forEach(sourceStmt => {
       val source = createNode(callee, sourceStmt)
       val csCloseLabel = createCSCloseLabel(caller, callStmt, callee)
@@ -897,7 +922,7 @@ abstract class JSVFA extends SVFA with Analysis with FieldSensitiveness with Sou
     unit.isInstanceOf[IdentityStmt] && unit.asInstanceOf[IdentityStmt].getRightOp.isInstanceOf[ParameterRef] && expr.getArg(pmtCount).isInstanceOf[Local]
 
   def isAssignReturnStmt(callSite: soot.Unit, unit: soot.Unit) : Boolean =
-   unit.isInstanceOf[ReturnStmt] && unit.asInstanceOf[ReturnStmt].getOp.isInstanceOf[Local] &&
+   unit.isInstanceOf[ReturnStmt] && unit.asInstanceOf[ReturnStmt].stmt.getOp.isInstanceOf[Local] &&
      callSite.isInstanceOf[soot.jimple.AssignStmt]
 
   def findAllocationSites(local: Local, oldSet: Boolean = true, field: SootField = null) : ListBuffer[LambdaNode] = {

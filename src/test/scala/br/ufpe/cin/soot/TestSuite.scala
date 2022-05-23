@@ -2,7 +2,7 @@ package br.ufpe.cin.soot
 
 import br.ufpe.cin.soot.basic.{Basic11Test, Basic16Test}
 import br.ufpe.cin.soot.graph.GraphEdge
-import br.ufpe.cin.soot.pdg.PDGTest
+import br.ufpe.cin.soot.pdg.PDGDataSetTest
 import org.scalatest.{BeforeAndAfter, FunSuite, Ignore}
 import samples.FieldSample
 import scalax.collection.GraphEdge
@@ -35,9 +35,69 @@ class TestSuite extends FunSuite with BeforeAndAfter {
 //    assert(svfa.reportConflicts().size == 1)
   }
 
+  test("we should correctly compute the number of nodes and edges in the PDG1 sample") {
+    //    val pdg = new PDG1Test( Array (7), Array (9))
+    val pdg = new PDG1Test()
+    pdg.buildSparseValueFlowGraph()
+
+    println(pdg.pdgToDotModel())
+
+    assert(pdg.pdg.nodes.size == 9)
+    assert(pdg.pdg.numberOfEdges() == 21)
+    assert(pdg.reportConflicts().size == 0)
+  }
+
+  test("we should correctly compute the number of nodes and edges in the PDG2 sample") {
+    //    val pdg = new PDG2Test( Array (7), Array (9))
+    val pdg = new PDG2Test()
+    pdg.buildSparseValueFlowGraph()
+
+    println(pdg.pdgToDotModel())
+
+    assert(pdg.pdg.nodes.size == 9)
+    assert(pdg.pdg.numberOfEdges() == 20)
+    assert(pdg.reportConflicts().size == 0)
+  }
+
+  test("we should correctly compute the number of nodes and edges in the PDG3 sample") {
+    //    val pdg = new PDG3Test( Array (7), Array (9))
+    val pdg = new PDG3Test()
+    pdg.buildSparseValueFlowGraph()
+
+    println(pdg.pdgToDotModel())
+
+    assert(pdg.pdg.nodes.size == 9)
+    assert(pdg.pdg.numberOfEdges() == 13)
+    assert(pdg.reportConflicts().size == 0)
+  }
+
+  test("we should correctly compute the number of nodes and edges in the PDG4 sample") {
+    //    val pdg = new PDG4Test( Array (7), Array (9))
+    val pdg = new PDG4Test()
+    pdg.buildSparseValueFlowGraph()
+
+    println(pdg.pdgToDotModel())
+
+    assert(pdg.pdg.nodes.size == 9)
+    assert(pdg.pdg.numberOfEdges() == 9)
+    assert(pdg.reportConflicts().size == 0)
+  }
+
+
+  test("we should correctly compute the number of nodes and edges in the PDG5 sample") {
+    //    val pdg = new PDG5Test( Array (7), Array (9))
+    val pdg = new PDG5Test()
+    pdg.buildSparseValueFlowGraph()
+
+    println(pdg.pdgToDotModel())
+
+    assert(pdg.pdg.nodes.size == 8)
+    assert(pdg.pdg.numberOfEdges() == 10)
+    assert(pdg.reportConflicts().size == 0)
+  }
 
   test("running pdg sprintboot") {
-    val pdg = new PDGTest()
+    val pdg = new PDGDataSetTest()
     pdg.buildSparseValueFlowGraph()
     println(pdg.cd.nodes.size)
     println(pdg.cd.numberOfEdges())

@@ -4,7 +4,7 @@ import br.ufpe.cin.soot.graph.{NodeType, SimpleNode, SinkNode, SourceNode}
 import br.ufpe.cin.soot.svfa.jimple.{FieldSenstive, Interprocedural, JSVFA}
 import soot.{Scene, SootMethod}
 
-class PDGTest extends JSVFA with Interprocedural with FieldSenstive {
+class PDGDataSetTest extends JSVFA with Interprocedural with FieldSenstive {
   def getClassName(): String = "org.springframework.boot.context.web.SpringBootServletInitializer"
   def getMainMethod(): String = "createRootApplicationContext"
 
