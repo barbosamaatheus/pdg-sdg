@@ -16,14 +16,14 @@ class TestSuite extends FunSuite with BeforeAndAfter {
 
   ignore("we should find exactly three conflicts in this analysis") {
     val svfa = new ArrayTest()
-    svfa.buildSparseValueFlowGraph()
+    svfa.buildFlowGraph()
     assert(svfa.reportConflicts().size == 3)
   }
 
   test("we should correctly compute the number of nodes and edges in the BlackBoardTest sample") {
-//    val svfa = new BlackBoardTest( Array (7), Array (9))
-    val svfa = new BlackBoardTest()
-    svfa.buildSparseValueFlowGraph()
+    val svfa = new BlackBoardTest( Array (5), Array (8))
+//    val svfa = new BlackBoardTest()
+    svfa.buildFlowGraph()
     println(svfa.pdg.nodes.size)
     println(svfa.pdg.numberOfEdges())
 
@@ -38,7 +38,7 @@ class TestSuite extends FunSuite with BeforeAndAfter {
   test("we should correctly compute the number of nodes and edges in the PDG1 sample") {
     //    val pdg = new PDG1Test( Array (7), Array (9))
     val pdg = new PDG1Test()
-    pdg.buildSparseValueFlowGraph()
+    pdg.buildFlowGraph()
 
     println(pdg.pdgToDotModel())
 
@@ -50,7 +50,7 @@ class TestSuite extends FunSuite with BeforeAndAfter {
   test("we should correctly compute the number of nodes and edges in the PDG2 sample") {
     //    val pdg = new PDG2Test( Array (7), Array (9))
     val pdg = new PDG2Test()
-    pdg.buildSparseValueFlowGraph()
+    pdg.buildFlowGraph()
 
     println(pdg.pdgToDotModel())
 
@@ -62,7 +62,7 @@ class TestSuite extends FunSuite with BeforeAndAfter {
   test("we should correctly compute the number of nodes and edges in the PDG3 sample") {
     //    val pdg = new PDG3Test( Array (7), Array (9))
     val pdg = new PDG3Test()
-    pdg.buildSparseValueFlowGraph()
+    pdg.buildFlowGraph()
 
     println(pdg.pdgToDotModel())
 
@@ -74,7 +74,7 @@ class TestSuite extends FunSuite with BeforeAndAfter {
   test("we should correctly compute the number of nodes and edges in the PDG4 sample") {
     //    val pdg = new PDG4Test( Array (7), Array (9))
     val pdg = new PDG4Test()
-    pdg.buildSparseValueFlowGraph()
+    pdg.buildFlowGraph()
 
     println(pdg.pdgToDotModel())
 
@@ -87,7 +87,7 @@ class TestSuite extends FunSuite with BeforeAndAfter {
   test("we should correctly compute the number of nodes and edges in the PDG5 sample") {
     //    val pdg = new PDG5Test( Array (7), Array (9))
     val pdg = new PDG5Test()
-    pdg.buildSparseValueFlowGraph()
+    pdg.buildFlowGraph()
 
     println(pdg.pdgToDotModel())
 
@@ -98,7 +98,7 @@ class TestSuite extends FunSuite with BeforeAndAfter {
 
   test("running pdg sprintboot") {
     val pdg = new PDGDataSetTest()
-    pdg.buildSparseValueFlowGraph()
+    pdg.buildFlowGraph()
     println(pdg.cd.nodes.size)
     println(pdg.cd.numberOfEdges())
 
@@ -109,63 +109,63 @@ class TestSuite extends FunSuite with BeforeAndAfter {
 
   test("we should not find any conflict in the BlackBoardTest sample") {
     val svfa = new BlackBoardTest()
-    svfa.buildSparseValueFlowGraph()
+    svfa.buildFlowGraph()
     assert(svfa.reportConflicts().size == 0)
   }
 
   ignore("we should correctly compute the number of nodes and edges of the CC16Test sample") {
     val svfa = new CC16Test()
-    svfa.buildSparseValueFlowGraph()
+    svfa.buildFlowGraph()
     assert(svfa.svg.nodes.size == 13)
     assert(svfa.svg.numberOfEdges() == 14)
   }
 
   test("we should find exactly one conflict of the CC16Test sample") {
     val svfa = new CC16Test()
-    svfa.buildSparseValueFlowGraph()
+    svfa.buildFlowGraph()
     // println(svfa.svgToDotModel())
     assert(svfa.reportConflicts().size == 1)
   }
 
   ignore("we should correctly compute the number of nodes and edges of the IfElseTest sample") {
     val svfa = new IfElseTest()
-    svfa.buildSparseValueFlowGraph()
+    svfa.buildFlowGraph()
     assert(svfa.svg.nodes.size == 17)
   }
 
   ignore("we should correctly compute the number of edges of the IfElseTest sample") {
     val svfa = new IfElseTest()
-    svfa.buildSparseValueFlowGraph()
+    svfa.buildFlowGraph()
     assert(svfa.svg.numberOfEdges() == 18)
   }
 
   test("we should find exactly one conflict in this analysis of the IfElseTest sample") {
     val svfa = new IfElseTest()
-    svfa.buildSparseValueFlowGraph()
+    svfa.buildFlowGraph()
     assert(svfa.reportConflicts().size == 1)
   }
 
   test("we should find two conflicts in the LogbackSampleTest analysis") {
     val svfa = new LogbackSampleTest()
-    svfa.buildSparseValueFlowGraph()
+    svfa.buildFlowGraph()
     assert(svfa.reportConflicts().size == 4)
   }
 
   test("we should find exactly one conflict in the StringBuggerTest analysis") {
     val svfa = new StringBufferTest()
-    svfa.buildSparseValueFlowGraph()
+    svfa.buildFlowGraph()
     assert(svfa.reportConflicts().size == 1)
   }
 
   test("we should find exactly one conflict in the InitStringBufferTest analysis") {
     val svfa = new InitStringBufferTest()
-    svfa.buildSparseValueFlowGraph()
+    svfa.buildFlowGraph()
     assert(svfa.reportConflicts().size == 1)
   }
 
   ignore("we should find exactly one conflict in the StringConcatTest analysis") {
     val svfa = new StringConcatTest()
-    svfa.buildSparseValueFlowGraph()
+    svfa.buildFlowGraph()
     assert(svfa.reportConflicts().size == 6)
   }
 
@@ -178,33 +178,33 @@ class TestSuite extends FunSuite with BeforeAndAfter {
 
   test("we should find exactly one conflict in the StringToStringTest analysis") {
     val svfa = new StringToStringTest()
-    svfa.buildSparseValueFlowGraph()
+    svfa.buildFlowGraph()
 
     assert(svfa.reportConflicts().size == 1)
   }
 
   test("we should find exactly two conflicts in the basic.Basic11 analysis") {
     val svfa = new Basic11Test()
-    svfa.buildSparseValueFlowGraph()
+    svfa.buildFlowGraph()
     assert(svfa.reportConflicts().size == 2)
   }
 
   test("we should find exactly one conflicts in the basic.Basic16 analysis") {
     val svfa = new Basic16Test()
-    svfa.buildSparseValueFlowGraph()
+    svfa.buildFlowGraph()
     assert(svfa.reportConflicts().size == 1)
   }
 
   test("we should find exactly one conflict in the ContextSensitiveSample  analysis") {
     val svfa = new ContextSensitiveTest()
-    svfa.buildSparseValueFlowGraph()
+    svfa.buildFlowGraph()
     // println(svfa.svgToDotModel())
     assert(svfa.reportConflicts().size == 1)
   }
 
   ignore("we should find exactly one conflict in the FieldSample analysis") {
     val svfa = new FieldTest()
-    svfa.buildSparseValueFlowGraph()
+    svfa.buildFlowGraph()
     assert(svfa.reportConflicts().size == 1)   // NOTE: We are not traversing the body of
                                                //       a method associated to a SinkNode. 
   }
@@ -213,7 +213,7 @@ class TestSuite extends FunSuite with BeforeAndAfter {
   // changes the field that is subsequently used by a sink line
   ignore("we should find exactly one conflict in the MethodFieldTest analysis") {
     val svfa = new MethodFieldTest()
-    svfa.buildSparseValueFlowGraph()
+    svfa.buildFlowGraph()
     System.out.println(svfa.svgToDotModel())
     assert(svfa.reportConflicts().size >= 1)
   }
@@ -222,7 +222,7 @@ class TestSuite extends FunSuite with BeforeAndAfter {
   // but with the field variable it isn't detected
   ignore("we should find exactly one conflict in the InvokeInstanceMethodOnFieldTest analysis") {
     val svfa = new InvokeInstanceMethodOnFieldTest()
-    svfa.buildSparseValueFlowGraph()
+    svfa.buildFlowGraph()
     System.out.println(svfa.svgToDotModel())
     assert(svfa.reportConflicts().size >= 1)
   }
@@ -232,7 +232,7 @@ class TestSuite extends FunSuite with BeforeAndAfter {
   // methods.
   ignore("we should find exactly one conflict in the HashmapTest analysis") {
     val svfa = new HashmapTest()
-    svfa.buildSparseValueFlowGraph()
+    svfa.buildFlowGraph()
     System.out.println(svfa.svgToDotModel())
     assert(svfa.reportConflicts().size >= 1)
   }

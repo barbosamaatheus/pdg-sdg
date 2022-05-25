@@ -215,47 +215,45 @@ abstract class JSVFA extends SVFA with Analysis with FieldSensitiveness with Sou
     traversedMethods.add(method)
     val body  = method.retrieveActiveBody()
 
+    try {
+      val unitGraph= new UnitGraphNodes(body, true)
 
-        try {
+      val analysis = new MHGPostDominatorsFinder(unitGraph)
 
-                val unitGraph= new UnitGraphNodes(body)
+      unitGraph.forEach(unit => {
+        var edges = unitGraph.getSuccsOf(unit)
+        var ADominators = analysis.getDominators(unit)
 
-                val analysis = new MHGPostDominatorsFinder(unitGraph)
-
-                unitGraph.forEach(unit => {
-                  var edges = unitGraph.getSuccsOf(unit)
-                  var ADominators = analysis.getDominators(unit)
-
-          //        println(unit, unit.getJavaSourceStartLineNumber())
-                  //Find a path with from unit to edges, using the post-dominator tree, excluding the LCA node
-                  //Add True and False edge
-                  var typeEd = true
-                  var count = 0
-                  edges.forEach(unitAux =>{
-                    var BDominators = analysis.getDominators(unitAux)
-                    var dItB = BDominators.iterator
-                    while (dItB.hasNext()) {
-                      val dsB = dItB.next()
-                      if (!ADominators.contains(dsB)){
-                        if (count > 0){
-                          typeEd = false
-                        } else {
-                          typeEd = true //The first time is true
-                        }
-                        addControlDependenceEdge(unit, dsB, typeEd, method)
-                      }
-                    }
-                    count = count + 1
-                  })
-                })
-              } catch {
-                case e: NullPointerException => {
-                  println ("Error creating node, an invalid statement.")
-                }
-                case e: Exception => {
-                  println ("An invalid statement.")
-                }
+//        println(unit, unit.getJavaSourceStartLineNumber())
+        //Find a path with from unit to edges, using the post-dominator tree, excluding the LCA node
+        //Add True and False edge
+        var typeEd = true
+        var count = 0
+        edges.forEach(unitAux =>{
+          var BDominators = analysis.getDominators(unitAux)
+          var dItB = BDominators.iterator
+          while (dItB.hasNext()) {
+            val dsB = dItB.next()
+            if (!ADominators.contains(dsB)){
+              if (count > 0){
+                typeEd = false
+              } else {
+                typeEd = true //The first time is true
               }
+              addControlDependenceEdge(unit, dsB, typeEd, method)
+            }
+          }
+          count = count + 1
+        })
+      })
+    } catch {
+      case e: NullPointerException => {
+        println ("Error creating node, an invalid statement.")
+      }
+      case e: Exception => {
+        println ("An invalid statement.")
+      }
+    }
 
     val graph = new ExceptionalUnitGraph(body)
     val defs  = new SimpleLocalDefs(graph)
@@ -397,6 +395,15 @@ abstract class JSVFA extends SVFA with Analysis with FieldSensitiveness with Sou
 
   def traverse(stmt: InvokeStmt, method: SootMethod, defs: SimpleLocalDefs) : Unit = {
     val exp = stmt.stmt.getInvokeExpr
+    //if is an object and is not a call method
+    exp.getUseBoxes.forEach(useBox => {
+      (useBox.getValue) match {
+        case (q: InstanceFieldRef) => loadRule(stmt.stmt, q, method, defs)
+        case (q: ArrayRef) => loadArrayRule(stmt.stmt, q, method, defs)
+        case (q: Local) => copyRule(stmt.stmt, q, method, defs)
+        case _ =>
+      }
+    })
     invokeRule(stmt, exp, method, defs)
   }
 
@@ -608,6 +615,7 @@ abstract class JSVFA extends SVFA with Analysis with FieldSensitiveness with Sou
 
         val fsLoadLabel = createFieldSensitiveLoadLabel(ref)
         svg.addEdge(sourceNode, targetNode, fsLoadLabel)
+        pdg.addEdge(sourceNode, targetNode, fsLoadLabel)
       })
 
 //      if (isFieldSensitiveAnalysis()) {

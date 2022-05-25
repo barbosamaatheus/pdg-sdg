@@ -2,13 +2,14 @@ package samples;
 
 public class BlackBoard {
     public static int main(){
-        int sum, x;
-        sum = 0;
-        x = 1;
-        while (x < 11) {
-            sum = sum + 1;
-            x = x + 1;
-        }
-        return x + sum;
+        ClassA a = new ClassA();
+        a.x = 3;
+        ClassA b = new ClassA();
+        return a.x;
     }
+
+    public static int m(int x){
+        return x;
+    }
+
 }

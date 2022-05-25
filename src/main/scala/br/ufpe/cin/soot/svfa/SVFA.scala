@@ -46,7 +46,7 @@ abstract class SVFA {
 
   def callGraph(): CG = SPARK
 
-  def buildSparseValueFlowGraph() {
+  def buildFlowGraph() {
     configureSoot()
     beforeGraphConstruction()
     val (pack, t) = createSceneTransform()
