@@ -3,9 +3,8 @@ package br.ufpe.cin.soot
 import br.ufpe.cin.soot.graph.{NodeType, SimpleNode, SinkNode, SourceNode}
 import soot.jimple.{AssignStmt, InvokeExpr, InvokeStmt}
 
-class ArrayTest(leftchangedlines: Array[Int], rightchangedlines: Array[Int]) extends JSVFATest {
-
-  override def getClassName(): String = "samples.ArraySample"
+class PDG6Test(leftchangedlines: Array[Int], rightchangedlines: Array[Int]) extends JSVFATest {
+  override def getClassName(): String = "samples.PDG6"
   override def getMainMethod(): String = "main"
 
   def this(){
@@ -42,3 +41,4 @@ class ArrayTest(leftchangedlines: Array[Int], rightchangedlines: Array[Int]) ext
       case _        => SimpleNode
     }
 }
+

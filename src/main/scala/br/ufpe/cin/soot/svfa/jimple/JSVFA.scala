@@ -825,25 +825,10 @@ abstract class JSVFA extends SVFA with Analysis with FieldSensitiveness with Sou
     }
   }
 
-  /*
-   * creates a graph node from a sootMethod / sootUnit
-   */
-
 
   /*
    * creates a graph node from a sootMethod / sootUnit
    */
-//  def createNode(method: SootMethod, stmt: soot.Unit): StatementNode = {
-//    try{
-//      return new StatementNode(Stmt(method.getDeclaringClass.toString, method.getSignature, stmt.toString, stmt.getJavaSourceStartLineNumber), analyze(stmt))
-//    }catch {
-//      case e: NullPointerException => {
-//        println("Error creating node, an invalid statement.")
-//        return null
-//      }
-//    }
-//  }
-
 
   def createEntryPointNode(method: SootMethod): StatementNode = {
     try {
