@@ -123,7 +123,7 @@ class TestSuite extends FunSuite with BeforeAndAfter {
   test("we should find exactly one conflict of the CC16Test sample") {
     val svfa = new CC16Test()
     svfa.buildFlowGraph()
-    // println(svfa.svgToDotModel())
+    println(svfa.svgToDotModel())
     assert(svfa.reportConflicts().size == 1)
   }
 

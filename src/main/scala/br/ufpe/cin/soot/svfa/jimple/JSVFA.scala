@@ -694,7 +694,7 @@ abstract class JSVFA extends SVFA with Analysis with FieldSensitiveness with Sou
   private def defsToCallSite(caller: SootMethod, callee: SootMethod, calleeDefs: SimpleLocalDefs, callStmt: soot.Unit, retStmt: soot.Unit) = {
     val target = createNode(caller, callStmt)
 
-    val local = retStmt.asInstanceOf[ReturnStmt].stmt.getOp.asInstanceOf[Local]
+    val local = retStmt.asInstanceOf[soot.jimple.ReturnStmt].getOp.asInstanceOf[Local]
     calleeDefs.getDefsOfAt(local, retStmt).forEach(sourceStmt => {
       val source = createNode(callee, sourceStmt)
       val csCloseLabel = createCSCloseLabel(caller, callStmt, callee)
@@ -930,7 +930,7 @@ abstract class JSVFA extends SVFA with Analysis with FieldSensitiveness with Sou
     unit.isInstanceOf[IdentityStmt] && unit.asInstanceOf[IdentityStmt].getRightOp.isInstanceOf[ParameterRef] && expr.getArg(pmtCount).isInstanceOf[Local]
 
   def isAssignReturnStmt(callSite: soot.Unit, unit: soot.Unit) : Boolean =
-   unit.isInstanceOf[ReturnStmt] && unit.asInstanceOf[ReturnStmt].stmt.getOp.isInstanceOf[Local] &&
+   unit.isInstanceOf[soot.jimple.ReturnStmt] && unit.asInstanceOf[soot.jimple.ReturnStmt].getOp.isInstanceOf[Local] &&
      callSite.isInstanceOf[soot.jimple.AssignStmt]
 
   def findAllocationSites(local: Local, oldSet: Boolean = true, field: SootField = null) : ListBuffer[LambdaNode] = {
