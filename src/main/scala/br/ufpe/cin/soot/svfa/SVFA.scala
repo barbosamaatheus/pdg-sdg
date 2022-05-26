@@ -214,6 +214,7 @@ abstract class SVFA {
   def pathToRT(): String =
     System.getProperty("java.home") + File.separator + "lib" + File.separator + "rt.jar"
 
+
   def svgToDotModel(): String = {
     val s = new StringBuilder
     var nodeColor = ""
@@ -229,58 +230,19 @@ abstract class SVFA {
       s ++= " " + "\"" + n.show() + "\"" + nodeColor + "\n"
     }
 
-    var edgeNodes = svg.graph.edges.toOuter
-
-    for (i <- edgeNodes) {
-      var x = i.value.label
-      var cd = new StringLabel("TrueEdge")
-      var cdFalse = new StringLabel("FalseEdge")
-      var loopEdge = new StringLabel("LoopEdge")
-      if (x.isInstanceOf[StringLabel]) {
-
-        var auxStr = ""
-        var cont = 0
-        for (auxNode <- i){
-          if (cont == 0){
-            auxStr += "\""+auxNode.show();
-          }else{
-            auxStr +=  "\"" + " -> " + "\"" + auxNode.show()+ "\"";
-          }
-          cont += +1
-        }
-
-        var cdEdge = (cd.asInstanceOf[StringLabel]).edgeType.toString
-        var cdEdgeFalse = (cdFalse.asInstanceOf[StringLabel]).edgeType.toString
-        var loopEd = (loopEdge.asInstanceOf[StringLabel]).edgeType.toString
-        var a = (x.asInstanceOf[StringLabel]).edgeType.toString
-        if (a.equals(cdEdge)) { //If is Control Dependence Edge
-          s ++= " "+auxStr + "[penwidth=3][label=\"T\"]" + "\n"
-        } else if (a.equals(cdEdgeFalse)) {
-          s ++= " "+auxStr + "[penwidth=3][label=\"F\"]" + "\n"
-        } else if (a.equals(loopEd)){
-          s ++= " "+auxStr + "[penwidth=2][style=dashed]" + "\n"
-        }else{
-          s ++= " "+auxStr + "\n"
-        }
+    for(n <- svg.nodes) {
+      val adjacencyList = svg.getAdjacentNodes(n).get
+      val edges = adjacencyList.map(next => "\"" + n.show() + "\"" + " -> " + "\"" + next.show() + "\"")
+      for(e <- edges) {
+        s ++= " " + e + "\n"
       }
     }
 
-
-    /*      for(n <- svg.nodes) {
-             val adjacencyList = svg.getAdjacentNodes(n).get
-             val edges = adjacencyList.map(next => +"\"" + n.show() + "\"" + " -> " + "\"" + next.show() + "\"")
-
-             for(e <- adjacencyList) {
-                s ++= " " + e + "\n"
-             }
-          }
-    */
 
     s ++= "}"
 
     return s.toString()
   }
-
 
   def cdToDotModel(): String = {
     val s = new StringBuilder
