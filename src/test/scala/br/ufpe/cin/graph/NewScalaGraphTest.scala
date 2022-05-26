@@ -33,32 +33,6 @@ class NewScalaGraphTest extends FunSuite {
     assert(g.numberOfEdges() == 0)
   }
 
-  test("try add duplicate edges") {
-    val g = new Graph()
-
-    val FakeSouce = StatementNode(StmtDef("FooClass", "FooMethod", "FooStmt", 1), SourceNode)
-    val FakeSouceCopy = StatementNode(StmtDef("FooClass", "FooMethod", "FooStmt", 1), SourceNode)
-    val FakeSink = StatementNode(StmtDef("BarClass", "BarMethod", "BarStmt", 2), SinkNode)
-    val FakeSinkCopy = StatementNode(StmtDef("BarClass", "BarMethod", "BarStmt", 2), SinkNode)
-
-    g.addEdge(FakeSouce, FakeSink)
-    assert(g.numberOfNodes() == 2)
-    assert(g.numberOfEdges() == 1)
-    g.addEdge(FakeSouce, FakeSink)
-    assert(g.numberOfNodes() == 2)
-    assert(g.numberOfEdges() == 1)
-    g.addEdge(FakeSouceCopy, FakeSinkCopy)
-    assert(g.numberOfNodes() == 2)
-    assert(g.numberOfEdges() == 1)
-    g.addEdge(FakeSouce, FakeSinkCopy)
-    assert(g.numberOfNodes() == 2)
-    assert(g.numberOfEdges() == 1)
-    g.addEdge(FakeSouceCopy, FakeSink)
-
-    assert(g.numberOfNodes() == 2)
-    assert(g.numberOfEdges() == 1)
-  }
-
   test("try find all paths") {
     val g = new Graph()
 
@@ -87,7 +61,7 @@ class NewScalaGraphTest extends FunSuite {
     assert(g.findPath(FakeSource, FakeSink2).nonEmpty)
   }
 
-  ignore("base") {
+  test("base") {
     val g = new Graph()
 
     val FakeSouce = StatementNode(StmtDef("FooClass", "FooMethod", "FooStmt", 1), SourceNode)
