@@ -25,7 +25,7 @@ class BlackBoardTest(leftchangedlines: Array[Int] , rightchangedlines: Array[Int
       return analyzeInvokeStmt(invokeStmt.getInvokeExpr)
     }
     if(unit.isInstanceOf[soot.jimple.AssignStmt]) {
-      val assignStmt = unit.asInstanceOf[AssignStmt]
+      val assignStmt = unit.asInstanceOf[soot.jimple.AssignStmt]
       if(assignStmt.getRightOp.isInstanceOf[InvokeExpr]) {
         val invokeStmt = assignStmt.getRightOp.asInstanceOf[InvokeExpr]
         return analyzeInvokeStmt(invokeStmt)

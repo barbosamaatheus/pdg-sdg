@@ -5,12 +5,12 @@ import br.ufpe.cin.soot.svfa.jimple.{FieldSenstive, Interprocedural, JSVFA}
 import soot.{Scene, SootMethod}
 
 class PDGDataSetTest extends JSVFA with Interprocedural with FieldSenstive {
-  def getClassName(): String = "org.springframework.boot.context.web.SpringBootServletInitializer"
-  def getMainMethod(): String = "createRootApplicationContext"
+  def getClassName(): String = "com.metamx.druid.loading.S3SegmentPusher"
+  def getMainMethod(): String = "push(File, DataSegment)"
 
   override def sootClassPath(): String = ""
 
-  override def applicationClassPath(): List[String] = List("/media/galileu/Arquivos/Doutorado/Pesquisa/spring-boot-1.3.0.BUILD-SNAPSHOT.jar")
+  override def applicationClassPath(): List[String] = List("/media/galileu/Arquivos/Doutorado/Pesquisa/druid-services-0.2.8-SNAPSHOT-jar-with-dependencies.jar")
 
   override def getEntryPoints(): List[SootMethod] = {
     val sootClass = Scene.v().getSootClass(getClassName())
@@ -23,10 +23,11 @@ class PDGDataSetTest extends JSVFA with Interprocedural with FieldSenstive {
     )
 
   override def analyze(unit: soot.Unit): NodeType = {
-    if (unit.getJavaSourceStartLineNumber == 99) {
+    if (unit.getJavaSourceStartLineNumber == 66 || unit.getJavaSourceStartLineNumber == 118 ||
+        unit.getJavaSourceStartLineNumber == 139 || unit.getJavaSourceStartLineNumber == 110) {
       return SinkNode
     }
-    if (unit.getJavaSourceStartLineNumber == 121 || unit.getJavaSourceStartLineNumber == 123) {
+    if (unit.getJavaSourceStartLineNumber == 105 || unit.getJavaSourceStartLineNumber == 125) {
       return SourceNode
     }
     return SimpleNode

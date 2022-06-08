@@ -14,8 +14,8 @@ class TestSuite extends FunSuite with BeforeAndAfter {
   }
 
   test("we should correctly compute the number of nodes and edges in the BlackBoardTest sample") {
-    val svfa = new BlackBoardTest( Array (5), Array (8))
-//    val svfa = new BlackBoardTest()
+//    val svfa = new BlackBoardTest( Array (7), Array (8))
+    val svfa = new BlackBoardTest()
     svfa.buildFlowGraph()
     println(svfa.pdg.nodes.size)
     println(svfa.pdg.numberOfEdges())
@@ -160,8 +160,9 @@ class TestSuite extends FunSuite with BeforeAndAfter {
   }
 
   test("we should find exactly one conflict in the StringBuggerTest analysis") {
-    val svfa = new StringBufferTest()
+    val svfa = new StringBufferTest(Array(6), Array(10))
     svfa.buildFlowGraph()
+    print(svfa.svgToDotModel())
     assert(svfa.reportConflictsSVG().size == 1)
   }
 
@@ -234,16 +235,16 @@ class TestSuite extends FunSuite with BeforeAndAfter {
     svfa.buildFlowGraph()
     assert(svfa.reportConflictsSVG().size == 0)
   }
-  /*
-    test("running pdg sprintboot") {
+/*
+    test("running dataset scenery") {
       val pdg = new PDGDataSetTest()
       pdg.buildFlowGraph()
-      println(pdg.cd.nodes.size)
-      println(pdg.cd.numberOfEdges())
+      println(pdg.pdg.nodes.size)
+      println(pdg.pdg.numberOfEdges())
 
-      println(pdg.reportConflictsCD().size)
-      println(pdg.cdToDotModel())
+      println(pdg.reportConflictsPDG().size)
+      println(pdg.pdgToDotModel())
 
      }
-  */
+*/
 }

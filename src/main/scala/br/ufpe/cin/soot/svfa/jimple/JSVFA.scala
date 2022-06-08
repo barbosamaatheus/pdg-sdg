@@ -216,7 +216,7 @@ abstract class JSVFA extends SVFA with Analysis with FieldSensitiveness with Sou
     val body  = method.retrieveActiveBody()
 
     try {
-      val unitGraph= new UnitGraphNodes(body, true)
+      val unitGraph= new UnitGraphNodes(body, false)
 
       val analysis = new MHGPostDominatorsFinder(unitGraph)
 
@@ -265,8 +265,8 @@ abstract class JSVFA extends SVFA with Analysis with FieldSensitiveness with Sou
         v match {
           case AssignStmt(base) => traverse(AssignStmt(base), method, defs)
           case InvokeStmt(base) => traverse(InvokeStmt(base), method, defs)
-          case IfStmt(base) => traverse(IfStmt(base), method, defs)
-          case ReturnStmt(base) => traverse(ReturnStmt(base), method, defs)
+          case IfStmt(base) => traverse(IfStmt(base), method, defs) //if statment
+          case ReturnStmt(base) => traverse(ReturnStmt(base), method, defs) //return
           case _ if analyze(unit) == SinkNode => traverseSinkStatement(v, method, defs)
           case _ =>
         }
@@ -698,18 +698,22 @@ abstract class JSVFA extends SVFA with Analysis with FieldSensitiveness with Sou
     calleeDefs.getDefsOfAt(local, retStmt).forEach(sourceStmt => {
       val source = createNode(callee, sourceStmt)
       val csCloseLabel = createCSCloseLabel(caller, callStmt, callee)
-      svg.addEdge(source, target, csCloseLabel)
-
+      svg.addEdge(source, target)
+      pdg.addEdge(source, target)
+      cd.addEdge(source, target)
 
       if(local.getType.isInstanceOf[ArrayType]) {
         val stores = arrayStores.getOrElseUpdate(local, List())
         stores.foreach(sourceStmt => {
           val source = createNode(callee, sourceStmt)
           val csCloseLabel = createCSCloseLabel(caller, callStmt, callee)
-          svg.addEdge(source, target, csCloseLabel)
+          svg.addEdge(source, target)
+          pdg.addEdge(source, target)
+          cd.addEdge(source, target)
         })
       }
     })
+
   }
 
   private def defsToThisObject(callStatement: Statement, caller: SootMethod, calleeDefs: SimpleLocalDefs, targetStmt: soot.Unit, expr: InvokeExpr, callee: SootMethod) : Unit = {

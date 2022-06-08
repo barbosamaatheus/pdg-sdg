@@ -3,10 +3,14 @@ package br.ufpe.cin.soot
 import br.ufpe.cin.soot.graph.{NodeType, SimpleNode, SinkNode, SourceNode}
 import soot.jimple.{AssignStmt, InvokeExpr, InvokeStmt}
 
-class StringBufferTest extends JSVFATest {
+class StringBufferTest (leftchangedlines: Array[Int], rightchangedlines: Array[Int]) extends JSVFATest {
   override def getClassName(): String = "samples.StringBufferSample"
 
   override def getMainMethod(): String = "main"
+
+  def this(){
+    this(Array.empty[Int], Array.empty[Int])
+  }
 
   override def analyze(unit: soot.Unit): NodeType = {
     if (unit.isInstanceOf[InvokeStmt]) {
