@@ -2,15 +2,16 @@ package samples;
 
 public class BlackBoard {
     public static int main(){
-        try
-        {
-            throw new NullPointerException();
+        int sum, x;
+        sum = 0;
+        x = 1;
+        while (x < 11) {
+            if (x == 10){
+                sum = sum + 1;
+                x = x + 1;
+            }
         }
-        catch(NullPointerException e)
-        {
-            System.out.println();
-            throw e; // rethrowing the exception
-        }
+        return x + sum;
     }
 }
 

@@ -24,7 +24,6 @@ package br.ufpe.cin.soot.graph;
 
 import soot.*;
 import soot.baf.*;
-import soot.jimple.Stmt;
 import soot.jimple.*;
 import soot.options.Options;
 import soot.toolkits.exceptions.ThrowAnalysis;
@@ -704,8 +703,8 @@ public class UnitGraphNodes extends UnitGraph implements ExceptionalGraph<Unit> 
 
         tails = new ArrayList<Unit>();
         for (Unit u : unitChain) {
-            if (u instanceof ReturnStmt || u instanceof ReturnVoidStmt || u instanceof soot.baf.ReturnInst
-                    || u instanceof soot.baf.ReturnVoidInst) {
+            if (u instanceof ReturnStmt || u instanceof ReturnVoidStmt || u instanceof ReturnInst
+                    || u instanceof ReturnVoidInst) {
                 tails.add(u);
             } else if (u instanceof ThrowStmt || u instanceof ThrowInst) {
                 Collection<ExceptionDest> dests = getExceptionDests(u);

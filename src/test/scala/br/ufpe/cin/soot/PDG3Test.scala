@@ -3,7 +3,7 @@ package br.ufpe.cin.soot
 import br.ufpe.cin.soot.graph.{NodeType, SimpleNode, SinkNode, SourceNode}
 import soot.jimple.{AssignStmt, InvokeExpr, InvokeStmt}
 
-class PDG3Test(leftchangedlines: Array[Int], rightchangedlines: Array[Int]) extends JSVFATest {
+class PDG3Test(leftchangedlines: Array[Int], rightchangedlines: Array[Int]) extends JPDGTest {
   override def getClassName(): String = "samples.PDG3"
   override def getMainMethod(): String = "main"
 
