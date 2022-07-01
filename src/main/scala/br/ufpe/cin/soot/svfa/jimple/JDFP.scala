@@ -1,24 +1,15 @@
 package br.ufpe.cin.soot.svfa.jimple
 
-import br.ufpe.cin.soot.graph.GraphNode
-import soot.jimple._
+import br.ufpe.cin.soot.graph.{GraphNode, StatementNode}
 import soot.options.Options
-import soot.toolkits.graph.ExceptionalUnitGraph
-import soot.toolkits.scalar.SimpleLocalDefs
-import soot.{PackManager, Scene, SceneTransformer, SootMethod, Transform, Unit}
 
-import java.util
-import com.typesafe.scalalogging.LazyLogging
+import soot.{PackManager}
+
 import soot.jimple._
-import soot.jimple.internal.{JArrayRef, JAssignStmt}
-import soot.jimple.spark.pag
-import soot.jimple.spark.pag.{AllocNode, PAG, StringConstantNode}
-import soot.jimple.spark.sets.{DoublePointsToSet, HybridPointsToSet, P2SetVisitor}
-import soot.toolkits.graph.{BlockGraph, ExceptionalBlockGraph, ExceptionalUnitGraph, LoopNestTree, MHGPostDominatorsFinder}
+import soot.toolkits.graph.{ExceptionalUnitGraph}
 import soot.toolkits.scalar.SimpleLocalDefs
-import soot.{ArrayType, Local, Scene, SceneTransformer, SootField, SootMethod, Transform, jimple}
+import soot.{Local, Scene, SceneTransformer, SootMethod, Transform}
 
-import scala.collection.mutable.ListBuffer
 import java.util
 
 
@@ -26,7 +17,7 @@ import java.util
  * A Jimple based implementation of
  * Control Dependence Analysis.
  */
-trait JDFP extends JSVFA   {
+trait JDFP extends JSVFA {
 
   val allocationSitesDFP = scala.collection.mutable.HashMap.empty[soot.Value, soot.Unit]
   val traversedMethodsDF = scala.collection.mutable.Set.empty[SootMethod]
@@ -37,9 +28,8 @@ trait JDFP extends JSVFA   {
     Options.v().setPhaseOption("jb", "use-original-names:true")
 
     beforeGraphConstruction()
-    val (pack, t) = createSceneTransform()
-    PackManager.v().getPack(pack).add(t)
-    configurePackages().foreach(p => PackManager.v().getPack(p).apply())
+
+    buildSparseValueFlowGraph()
 
     val (pack2, t2) = createSceneTransformDFP()
     PackManager.v().getPack(pack2).add(t2)
@@ -169,10 +159,30 @@ trait JDFP extends JSVFA   {
     })
   }
 
+  def containsNodeDFP(node: StatementNode): StatementNode = {
+    for (n <- svg.edges()){
+      var xx = n.from.asInstanceOf[StatementNode]
+      var yy = n.to.asInstanceOf[StatementNode]
+      if (xx.equals(node)) return n.from.asInstanceOf[StatementNode]
+      if (yy.equals(node)) return n.to.asInstanceOf[StatementNode]
+    }
+    return null
+  }
+
   def updateGraph(source: GraphNode, target: GraphNode, forceNewEdge: Boolean = false): Boolean = {
     var res = false
     if (!runInFullSparsenessMode() || true) {
-      svg.addEdge(source, target)
+      var xy = containsNodeDFP(source.asInstanceOf[StatementNode])
+      var xx = containsNodeDFP(target.asInstanceOf[StatementNode])
+      if (xy != null){
+        if (xx != null){
+          svg.addEdge(xy, xx)
+        }else{
+          svg.addEdge(xy, target.asInstanceOf[StatementNode])
+        }
+      }else{
+        svg.addEdge(source, target)
+      }
       res = true
     }
     return res

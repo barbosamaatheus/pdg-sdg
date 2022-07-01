@@ -1,8 +1,10 @@
 package br.ufpe.cin.soot.svfa.jimple
 
 import br.ufpe.cin.soot.graph
-import br.ufpe.cin.soot.graph.{ContextStatement, DefLabel, EdgeLabel, EdgeLabelType, FalseLabel, GraphNode, SinkNode, SourceNode, StatementNode, StringLabel, TrueLabel}
+import br.ufpe.cin.soot.graph.{DefLabel, DefLabelType, EdgeLabel, FalseLabel, GraphNode, SinkNode, SourceNode, StatementNode, StringLabel, TrueLabel, UnitDummy}
+import cats.implicits.catsSyntaxHash
 import scalax.collection.GraphPredef.anyToNode
+import scalax.collection.mutable.AdjacencyListGraph
 import soot.jimple._
 import soot.options.Options
 import soot.toolkits.graph.{ExceptionalBlockGraph, ExceptionalUnitGraph}
@@ -10,6 +12,7 @@ import soot.toolkits.scalar.SimpleLocalDefs
 import soot.{Local, PackManager, Scene, SceneTransformer, SootMethod, Transform}
 
 import java.util
+import scala.collection.immutable.HashSet
 
 
 /**
@@ -21,13 +24,18 @@ abstract class JPDG extends JCD with JDFP   {
   val allocationSitesPDG = scala.collection.mutable.HashMap.empty[soot.Value, soot.Unit]
   val traversedMethodsPDG = scala.collection.mutable.Set.empty[SootMethod]
   var listDef : List[(AssignStmt, StatementNode, Int)] = List()
-  var pdg = new br.ufpe.cin.soot.graph.GraphLabelKey()
+  var pdg = new br.ufpe.cin.soot.graph.Graph()
+  var hashSetUnit = new util.HashSet[(StatementNode, StatementNode, EdgeLabel)]
 
   def buildPDG() {
-    //    buildDFP()
-    buildCD()
+//    buildSparseValueFlowGraph()
+
     buildDFP()
+    buildCD()
+
     mergeDFPAndCD()
+
+    Options.v().setPhaseOption("jb", "use-original-names:true")
 
     val (pack, t) = createSceneTransformPDG()
     PackManager.v().getPack(pack).add(t)
@@ -37,25 +45,59 @@ abstract class JPDG extends JCD with JDFP   {
   }
 
   def mergeDFPAndCD(): Unit = {
-    //Add cd edges in pdg
-    for (e <- cd.edges) {
-      val from = e.from
-      val label = e.label
-      val to = e.to
-      pdg.addEdge(from, to, label)
-    }
 
     //Add df+ edges in pdg
 
-    for (e <- svg.edges) {
+    for (e <- svg.edges()) {
       val from = e.from
       val label = e.label
       val to = e.to
-      pdg.addEdge(from, to, label)
+      var xy = containsNodePDG(from.asInstanceOf[StatementNode])
+      var xx = containsNodePDG(to.asInstanceOf[StatementNode])
+      if (xy != null){
+        if (xx != null){
+          pdg.addEdge(xy, xx, label)
+        }else{
+          pdg.addEdge(xy, to.asInstanceOf[StatementNode], label)
+        }
+
+      }else{
+        pdg.addEdge(from.asInstanceOf[StatementNode], to.asInstanceOf[StatementNode], label)
+      }
     }
 
+    //Add cd edges in pdg
+
+    for (e <- cd.edges()) {
+      val from = e.from
+      val label = e.label
+      val to = e.to
+      var xy = containsNodePDG(from.asInstanceOf[StatementNode])
+      var xx = containsNodePDG(to.asInstanceOf[StatementNode])
+      if (xy != null){
+        if (xx != null){
+          pdg.addEdge(xy, xx, label)
+        }else{
+          pdg.addEdge(xy, to.asInstanceOf[StatementNode], label)
+        }
+
+      }else{
+        pdg.addEdge(from.asInstanceOf[StatementNode], to.asInstanceOf[StatementNode], label)
+      }
+    }
 
   }
+
+  def containsNodePDG(node: StatementNode): StatementNode = {
+    for (n <- pdg.edges()){
+      var xx = n.from.asInstanceOf[StatementNode]
+      var yy = n.to.asInstanceOf[StatementNode]
+      if (xx.equals(node)) return n.from.asInstanceOf[StatementNode]
+      if (yy.equals(node)) return n.to.asInstanceOf[StatementNode]
+    }
+    return null
+  }
+
   def createSceneTransformPDG(): (String, Transform) = ("wjtp", new Transform("wjtp.pdg", new TransformerPDG()))
 
   class TransformerPDG extends SceneTransformer {
@@ -97,7 +139,6 @@ abstract class JPDG extends JCD with JDFP   {
     traversedMethodsPDG.add(method)
 
     val body  = method.retrieveActiveBody()
-    val graph = new ExceptionalUnitGraph(body)
 
     val graphBlock = new ExceptionalBlockGraph(body)
 
@@ -117,24 +158,34 @@ abstract class JPDG extends JCD with JDFP   {
     if (listDef.length>0){
       for (i <- 0 until listDef.length) {
         for (j <- i+1 until listDef.length){
-          if (listDef(i)._1.stmt.getLeftOp == listDef(j)._1.stmt.getLeftOp){
+          var op1 = listDef(i)._1.stmt.getLeftOp
+          var op2 = listDef(j)._1.stmt.getLeftOp
+          if (op1.toString().equals(op2.toString())){
 
             try {
-              val nextI = svg.getAdjacentNodes(listDef(i)._2).get
-              val nextJ = svg.getAdjacentNodes(listDef(j)._2).get
+              var xy = containsNodePDG(listDef(i)._2.asInstanceOf[StatementNode])
+              var xx = containsNodePDG(listDef(j)._2.asInstanceOf[StatementNode])
 
-              val xx = listDef(i)._1.stmt
-              val yy = listDef(j)._1.stmt
-              val bx = listDef(i)._3
-              val by = listDef(j)._3
+              val nextI = pdg.getAdjacentNodes(xy).get
+              val nextJ = pdg.getAdjacentNodes(xx).get
 
-              nextI.foreach(nodeI=>{
-                nextJ.foreach(nodeJ=>{
-                  if (nodeI.equals(nodeJ)){ //Add edge
-                    addDefEdges(listDef(i)._1.stmt, listDef(j)._1.stmt, method)
+              for (n <- nextI){
+                for (m <- nextJ){
+                  if (n.equals(m)){
+                    val label = createDefEdgeLabel(listDef(i)._1.stmt, listDef(j)._1.stmt, method)
+
+                    if (xy != null){
+                      if (xx != null){
+                        pdg.addEdge(xy, xx, label)
+                      }else{
+                        pdg.addEdge(xy, nextJ.asInstanceOf[StatementNode], label)
+                      }
+                    }else{
+                      pdg.addEdge(nextI.asInstanceOf[StatementNode], nextJ.asInstanceOf[StatementNode], label)
+                    }
                   }
-                })
-              })
+                }
+              }
             }catch{
               case e => print(e)
             }
@@ -159,21 +210,33 @@ abstract class JPDG extends JCD with JDFP   {
     listDef = listDef:+ (assignStmt, node, branch)
   }
 
-  def addDefEdges(s: soot.Unit, t: soot.Unit, method: SootMethod): Unit = {
-    if (s.isInstanceOf[GotoStmt] || t.isInstanceOf[GotoStmt]) return
-    var source = createNode(method, s)
-    var target = createNode(method, t)
+//  def addDefEdges(s: soot.Unit, t: soot.Unit, method: SootMethod): Unit = {
+//    if (s.isInstanceOf[GotoStmt] || t.isInstanceOf[GotoStmt]) return
+//    var source = createNode(method, s)
+//    var target = createNode(method, t)
+//
+//    val auxLabel = createDefEdgeLabel(s, t, method)
+//
+//    addDefEdge(source, target, auxLabel)
+//  }
 
-    val auxLabel = createDefEdgeLabel(s, t, method)
-
-    addLoopEdge(source, target, auxLabel)
-  }
-
-  def addLoopEdge(source: GraphNode, target: GraphNode, label: EdgeLabel): Boolean = {
+  def addDefEdge(source: GraphNode, target: GraphNode, label: EdgeLabel): Boolean = {
     var res = false
     if(!runInFullSparsenessMode() || true) {
       //      val label = createLoopEdgeLabel()
-      pdg.addEdge(source, target, label)
+      var xy = containsNodePDG(source.asInstanceOf[StatementNode])
+      if (xy != null){
+        var xx = containsNodePDG(target.asInstanceOf[StatementNode])
+        if (xx != null){
+          pdg.addEdge(xy, xx, label)
+        }else{
+          pdg.addEdge(xy, target, label)
+        }
+        print(xy)
+      }else{
+        pdg.addEdge(source, target, label)
+      }
+//      pdg.addEdge(source, target, label)
       res = true
     }
     return res
@@ -202,6 +265,11 @@ abstract class JPDG extends JCD with JDFP   {
     }
   }
 
+  def createDefEdgeLabel(source: soot.Unit, target: soot.Unit, method: SootMethod): DefLabelType = {
+    val statement = br.ufpe.cin.soot.graph.Statement(method.getDeclaringClass.toString, method.getSignature, source.toString, source.getJavaSourceStartLineNumber)
+    DefLabelType(DefLabel)
+  }
+
   def pdgToDotModel(): String = {
     val s = new StringBuilder
     var nodeColor = ""
@@ -214,7 +282,7 @@ abstract class JPDG extends JCD with JDFP   {
         case _          => ""
       }
 
-      s ++= " " + "\"" + n.show() + "\"" + nodeColor + "\n"
+      s ++= " " + "\"" + n.show()+" - "+n.hashCode().toString+"\"" + nodeColor + "\n"
     }
 
     var edgeNodes = pdg.graph.edges.toOuter
@@ -226,16 +294,16 @@ abstract class JPDG extends JCD with JDFP   {
       var cont = 0
       for (auxNode <- i) {
         if (cont == 0) {
-          auxStr += "\"" + auxNode.show();
+          auxStr += "\"" + auxNode.show()+" - "+auxNode.hashCode().toString;
         } else {
-          auxStr += "\"" + " -> " + "\"" + auxNode.show() + "\"";
+          auxStr += "\"" + " -> " + "\"" + auxNode.show()+" - "+auxNode.hashCode().toString+ "\"";
         }
         cont += +1
       }
 
-      var xy = x.isInstanceOf[EdgeLabelType]
-      if (x.isInstanceOf[EdgeLabelType]) {
-        val labelType = x.asInstanceOf[EdgeLabelType].labelType
+      var xy = x.isInstanceOf[EdgeLabel]
+      if (x.isInstanceOf[EdgeLabel]) {
+        val labelType = x.asInstanceOf[EdgeLabel].labelType
 
         if (labelType.toString.equals(TrueLabel.toString)) {
           s ++= " " + auxStr + "[penwidth=3][label=\"T\"]" + "\n"
@@ -252,11 +320,6 @@ abstract class JPDG extends JCD with JDFP   {
     }
     s ++= "}"
     return s.toString()
-  }
-
-  def createDefEdgeLabel(source: soot.Unit, target: soot.Unit, method: SootMethod): EdgeLabelType = {
-    val statement = graph.StatementCD(method.getDeclaringClass.toString, method.getSignature, source.toString, source.getJavaSourceStartLineNumber)
-    EdgeLabelType(ContextStatement(statement, target), DefLabel)
   }
 
 }

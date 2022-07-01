@@ -693,10 +693,31 @@ abstract class JSVFA extends SVFA with Analysis with FieldSensitiveness with Sou
 //   * It either updates the graph or not, depending on
 //   * the types of the nodes.
 //   */
+
+  def containsNodeDF(node: StatementNode): StatementNode = {
+    for (n <- svg.edges()){
+      var xx = n.from.asInstanceOf[StatementNode]
+      var yy = n.to.asInstanceOf[StatementNode]
+      if (xx.equals(node)) return n.from.asInstanceOf[StatementNode]
+      if (yy.equals(node)) return n.to.asInstanceOf[StatementNode]
+    }
+    return null
+  }
   private def updateGraph(source: GraphNode, target: GraphNode, forceNewEdge: Boolean = false): Boolean = {
     var res = false
     if(!runInFullSparsenessMode() || true) {
-      svg.addEdge(source, target)
+      var xy = containsNodeDF(source.asInstanceOf[StatementNode])
+      var xx = containsNodeDF(target.asInstanceOf[StatementNode])
+      if (xy != null){
+        if (xx != null){
+          svg.addEdge(xy, xx)
+        }else{
+          svg.addEdge(xy, target.asInstanceOf[StatementNode])
+        }
+      }else{
+        svg.addEdge(source, target)
+      }
+
       res = true
     }
 

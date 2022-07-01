@@ -1,6 +1,7 @@
 //package br.ufpe.cin.soot.graph
 //
 //import scalax.collection.edge.LkDiEdge
+//import soot.SootMethod
 //
 //import scala.collection.immutable.HashSet
 //
@@ -8,36 +9,25 @@
 //  * This trait define the base type for node classifications.
 //  * A node can be classified as SourceNode, SinkNode or SimpleNode.
 //  */
+//sealed trait NodeType
 //
-//sealed trait EdgeType
+//case object SourceNode extends NodeType { def instance: SourceNode.type = this }
+//case object SinkNode extends NodeType { def instance: SinkNode.type = this }
+//case object SimpleNode extends NodeType { def instance: SimpleNode.type = this }
 //
-//case object SimpleEdge extends EdgeType { def instance: SimpleEdge.type = this }
-//case object TrueEdge extends EdgeType { def instance: TrueEdge.type = this }
-//case object FalseEdge extends EdgeType { def instance: FalseEdge.type = this }
-//case object LoopEdge extends EdgeType { def instance: LoopEdge.type = this }
-//case object DefEdge extends EdgeType { def instance: DefEdge.type = this }
-//
-//trait LambdaLabel {
+///*
+//  * This trait define the abstraction needed to possibility custom node types,
+//  * acting as a container to hold the node data inside the value attribute.
+//  * The attribute nodeType hold the node classification as source, sink or simple.
+//  */
+//trait GraphNode {
 //  type T
-//  var value: T
-//  val edgeType: EdgeType
+//  val value: T
+//  val nodeType: NodeType
+//  def unit(): soot.Unit
+//  def method(): soot.SootMethod
+//  def show(): String
 //}
-//
-//object EdgeType {
-//  def convert(edge: String): EdgeType = {
-//    if(edge.equals(TrueEdge.toString)) {
-//      TrueEdge
-//    } else if (edge.equals(FalseEdge.toString)) {
-//      FalseEdge
-//    }else if (edge.equals(LoopEdge.toString)){
-//      LoopEdge
-//    }else if (edge.equals(DefEdge.toString)){
-//      DefEdge
-//    }
-//    else SimpleEdge
-//  }
-//}
-//
 //
 ///*
 //  * Simple class to hold all the information needed about a statement,
@@ -45,93 +35,92 @@
 //  * it is enough for the analysis, but for some situations, something
 //  * specific for Jimple or Shimple abstractions can be a better option.
 //  */
-//
-//case class StmtDef(className: String, method: String, stmt: String, line: Int)
-//
-//case class StatementCD(className: String, method: String, stmt: String, line: Int, sootUnit: soot.Unit = null, sootMethod: soot.SootMethod = null)
-//
+//case class Statement(className: String, method: String, stmt: String, line: Int, sootUnit: soot.Unit = null, sootMethod: soot.SootMethod = null)
 //
 ///*
-//  * This trait define the base for all other labels classifications, like the NodeType
-//  * the LabelType is used to inform things relevant for the analysis like context sensitive
-//  * regions or field sensitive actions (store or load).
-//  */
-//
-//
-//sealed trait FieldSensitiveLabelType extends LabelType
-//case object FieldSensitiveStoreLabel extends FieldSensitiveLabelType { def instance: FieldSensitiveStoreLabel.type = this }
-//case object FieldSensitiveLoadLabel extends FieldSensitiveLabelType { def instance: FieldSensitiveLoadLabel.type = this }
-//
-//case object LoopLabel extends LabelType { def instance: LoopLabel.type = this }
-//case object TrueLabel extends LabelType { def instance: TrueLabel.type = this }
-//case object FalseLabel extends LabelType { def instance: FalseLabel.type = this }
-//case object DefLabel extends LabelType { def instance: DefLabel.type = this }
-//
-//case class StringLabelCD(label: String) extends LambdaLabel {
-//  override type T = String
-//  override var value: String = label
-//  override val edgeType: EdgeType = EdgeType.convert(label)
-//}
-//
-//case class StatementNodeCD(stmt: StmtDef, stmtType: NodeType) extends GraphNode {
-//  override type T = StmtDef
-//  override val value: StmtDef = stmt
-//  override val nodeType: NodeType = stmtType
+// * A graph node defined using the GraphNode abstraction specific for statements.
+// * Use this class as example to define your own custom nodes.
+// */
+//case class StatementNode(value: Statement, nodeType: NodeType) extends GraphNode {
+//  type T = Statement
 //
 //  override def show(): String = value.stmt
-//  override def method(): soot.SootMethod = null
-//  override def unit(): soot.Unit = null
-//
-//  //  override def show(): String = "(" ++ value.method + ": " + value.stmt + " - " + value.line + " <" + nodeType.toString + ">)"
+////  override def show(): String = "(" ++ value.method + ": " + value.stmt + " - " + value.line + " <" + nodeType.toString + ">)"
 //
 //  override def toString: String =
 //    "Node(" + value.method + "," + value.stmt + "," + value.line.toString + "," + nodeType.toString + ")"
 //
 //  override def equals(o: Any): Boolean = {
 //    o match {
-//      case stmt: StatementNodeCD => stmt.value == value && stmt.nodeType == nodeType
+//      case stmt: StatementNode => stmt.value == value && stmt.nodeType == nodeType
 //      case _ => false
 //    }
 //  }
 //
-//  override def hashCode(): Int = 2 * stmt.hashCode() + nodeType.hashCode()
+//  override def hashCode(): Int = 2 * value.hashCode() + nodeType.hashCode()
+//
+//  override def unit(): soot.Unit = value.sootUnit
+//
+//  override def method(): SootMethod = value.sootMethod
 //}
 //
+///*
+//  * This trait define the base for all other labels classifications, like the NodeType
+//  * the LabelType is used to inform things relevant for the analysis like context sensitive
+//  * regions or field sensitive actions (store or load).
+//  */
+//trait LabelType
+//
+//case object SimpleLabel extends LabelType { def instance: SimpleLabel.type = this }
+//
+//sealed trait CallSiteLabelType extends LabelType
+//case object CallSiteOpenLabel extends CallSiteLabelType { def instance: CallSiteOpenLabel.type = this }
+//case object CallSiteCloseLabel extends CallSiteLabelType { def instance: CallSiteCloseLabel.type = this }
 //
 ///*
 //  * Like the graph nodes, the edge labels can be customized and this trait
 //  * define the abstraction needed to possibility the customization,
 //  * acting as a container to hold the labels data inside the value attribute.
 //  */
+//trait EdgeLabel {
+//  type T
+//  var value: T
+//  val labelType: LabelType
+//}
 //
-//case class ContextStatement(statement: StatementCD, unit: soot.Unit)
+//case class StringLabel(label: String) extends EdgeLabel {
+//  override type T = String
+//  override var value = label
+//  override val labelType: LabelType = SimpleLabel
+//}
 //
-//case class EdgeLabelType(context: ContextStatement, labelType: LabelType) extends EdgeLabel {
-//  override type T = ContextStatement
-//  override var value = context
+//case class ContextSensitiveRegion(statement: Statement, calleeMethod: String)
 //
-//  override def equals(o: Any): Boolean = {
-//    o match {
-//      case label: EdgeLabelType =>
-//        return value == label.value && labelType == label.labelType
+//case class CallSiteLabel(csRegion: ContextSensitiveRegion, labelType: CallSiteLabelType) extends EdgeLabel {
+//  override type T = ContextSensitiveRegion
+//  override var value = csRegion
+//
+//  def matchCallStatement(otherLabel: Any): Boolean = {
+//    otherLabel match {
+//      case defaultCSLabel: CallSiteLabel =>
+//        val csLabel = defaultCSLabel.value
+//        // Match close with open OR open with close
+//        if (labelType != defaultCSLabel.labelType) {
+//          return value.statement == csLabel.statement
+//        } else {
+//          false
+//        }
 //      case _ => false
 //    }
 //  }
-//}
 //
-//case class FieldReference(className: String, field: String)
-//
-//case class FieldSensitiveLabel(fieldRef: FieldReference, labelType: FieldSensitiveLabelType) extends EdgeLabel {
-//  override type T = FieldReference
-//  override var value = fieldRef
-//
-//  def matchFieldReference(otherLabel: Any): Boolean = {
+//  def matchCalleeMethod(otherLabel: Any): Boolean = {
 //    otherLabel match {
-//      case defaultFRLabel: FieldSensitiveLabel =>
-//        val frLabel = defaultFRLabel.value
-//        // Match store with load or load with store
-//        if (labelType != defaultFRLabel.labelType) {
-//          return value == frLabel
+//      case defaultCSLabel: CallSiteLabel =>
+//        val csLabel = defaultCSLabel.value
+//        // Match close with open OR open with close
+//        if (labelType != defaultCSLabel.labelType) {
+//          return value.calleeMethod == csLabel.calleeMethod
 //        } else {
 //          false
 //        }
@@ -141,17 +130,16 @@
 //
 //  override def equals(o: Any): Boolean = {
 //    o match {
-//      case frLabel: FieldSensitiveLabel =>
-//        return value == frLabel.value && labelType == frLabel.labelType
+//      case csLabel: CallSiteLabel =>
+//        return value == csLabel.value && labelType == csLabel.labelType
 //      case _ => false
 //    }
 //  }
 //}
 //
+//case class GraphEdge(from: GraphNode, to: GraphNode, label: EdgeLabel)
 //
-//case class GraphEdgeCD(from: GraphNode, to: GraphNode, label: EdgeLabel)
-//
-//class GraphLabelKey() {
+//class Graph() {
 //  val graph = scalax.collection.mutable.Graph.empty[GraphNode, LkDiEdge]
 //
 //  var fullGraph: Boolean = false
@@ -161,22 +149,12 @@
 //  def gNode(outerNode: GraphNode): graph.NodeT = graph.get(outerNode)
 //  def gEdge(outerEdge: LkDiEdge[GraphNode]): graph.EdgeT = graph.get(outerEdge)
 //
-//  def contains(node: GraphNode): Boolean = {
-//    val graphNode = graph.find(node)
-//    if (graphNode.isDefined) {
-//      return true
-//    }
-//    return false
-//  }
+//  def contains(node: GraphNode): Boolean = graph.find(node).isDefined
 //
-//  def addNode(node: GraphNode): Unit = {
-//    graph.add(node)
-//  }
+//  def addNode(node: GraphNode): Unit = graph.add(node)
 //
-//  //  def addEdge(source: GraphNode, target: GraphNode): Unit = {
-//  //    val label = new StringLabel("Normal")
-//  //    addEdge(source, target, label)
-//  //  }
+//  def addEdge(source: GraphNode, target: GraphNode): Unit =
+//    addEdge(source, target, StringLabel("Normal"))
 //
 //  def addEdge(source: GraphNode, target: GraphNode, label: EdgeLabel): Unit = {
 ////    if(source == target) {
@@ -197,9 +175,9 @@
 //
 //  def getIgnoredNodes(): HashSet[GraphNode] = {
 //    var ignoredNodes = HashSet.empty[GraphNode]
-//    var hasChanged = 51
-//    while (hasChanged > 50) {
-//      hasChanged = 0
+//    var countChanges = 51
+//    while (countChanges > 50) {
+//      countChanges = 0
 //      this.nodes().diff(ignoredNodes).foreach(n => {
 //        val gNode = this.gNode(n)
 //        val hasValidSuccessors = gNode.diSuccessors
@@ -212,22 +190,22 @@
 //            case SourceNode =>
 //              if (! hasValidSuccessors) {
 //                ignoredNodes = ignoredNodes + n
-//                hasChanged += 1
+//                countChanges += 1
 //              }
 //            case SinkNode =>
 //              if (! hasValidPredecessors) {
 //                ignoredNodes = ignoredNodes + n
-//                hasChanged += 1
+//                countChanges += 1
 //              }
 //            case _ =>
 //              if (!(hasValidPredecessors && hasValidSuccessors)) {
 //                ignoredNodes = ignoredNodes + n
-//                hasChanged += 1
+//                countChanges += 1
 //              }
 //          }
 //        } else {
 //          ignoredNodes = ignoredNodes + n
-//          hasChanged += 1
+//          countChanges += 1
 //        }
 //      })
 //    }
@@ -340,11 +318,9 @@
 //                currentPath: graph.PathBuilder, paths: List[graph.Path]): List[graph.Path] = {
 //    // TODO: find some optimal way to travel in graph
 //    val adjacencyList = gNode(source).diSuccessors.map(_node => _node.toOuter)
-//    val auxAdj = graph.get(source).value
-//
-//    if (adjacencyList.contains(target) ) {
+//    if (adjacencyList.contains(target)) {
 //      currentPath += gNode(target)
-//      //      return paths ++ List(currentPath.result)
+////      return paths ++ List(currentPath.result)
 //      return List(currentPath.result)
 //    }
 //
@@ -357,38 +333,24 @@
 //    })
 //    return List()
 //
-//    //    var possiblePaths = paths
-//    //    adjacencyList.foreach(next => {
-//    //      if (! visited(next)) {
-//    //        var nextPath = currentPath
-//    //        nextPath += gNode(next)
-//    //        val possiblePath = findPaths(next, target, visited + next, nextPath, paths)
-//    //        if (possiblePath.nonEmpty) {
-//    //          var findAllConflictPaths = false
-//    //          if (findAllConflictPaths) {
-//    //            possiblePaths = possiblePaths ++ possiblePath
-//    //          } else {
-//    //            return possiblePath
-//    //          }
-//    //        }
-//    //      }
-//    //    })
-//    //
-//    //    return possiblePaths
-//  }
-//
-//  def getSuccs(source: GraphNode) = {
-//    val auxAdj = graph.get(source).value
-//    var ox = edges()
-//    var lisAdj = List()
-//    ox.foreach( edge =>{
-//      var ed = edge.from
-//      if (auxAdj.show().equals(ed.show())){
-//        var igual = edge.to
-////        listAdj = List(igual)
-//        print(igual)
-//      }
-//    })
+////    var possiblePaths = paths
+////    adjacencyList.foreach(next => {
+////      if (! visited(next)) {
+////        var nextPath = currentPath
+////        nextPath += gNode(next)
+////        val possiblePath = findPaths(next, target, visited + next, nextPath, paths)
+////        if (possiblePath.nonEmpty) {
+////          var findAllConflictPaths = false
+////          if (findAllConflictPaths) {
+////            possiblePaths = possiblePaths ++ possiblePath
+////          } else {
+////            return possiblePath
+////          }
+////        }
+////      }
+////    })
+////
+////    return possiblePaths
 //  }
 //
 //  def getUnmatchedCallSites(source: List[CallSiteLabel], target: List[CallSiteLabel]): List[CallSiteLabel] = {
@@ -418,36 +380,9 @@
 //    return unmatched
 //  }
 //
-//  def getUnmatchedFieldReferences(source: List[FieldSensitiveLabel], target: List[FieldSensitiveLabel]): List[FieldSensitiveLabel] = {
-//    var unmatched = List.empty[FieldSensitiveLabel]
-//    var unvisitedTargets = target
-//
-//    source.foreach(s => {
-//      var matchedFR = List.empty[FieldSensitiveLabel]
-//      var unmatchedFR = List.empty[FieldSensitiveLabel]
-//      unvisitedTargets.foreach(label => {
-//        if (label.matchFieldReference(s))
-//          matchedFR = matchedFR ++ List(label)
-//        else
-//          unmatchedFR = unmatchedFR ++ List(label)
-//      })
-//
-//      if (matchedFR.size > 0) {
-//        unvisitedTargets = unmatchedFR ++ matchedFR.init
-//      } else {
-//        unvisitedTargets = unmatchedFR
-//        unmatched = unmatched ++ List(s)
-//      }
-//    })
-//
-//    return unmatched
-//  }
-//
 //  def isValidPath(path: graph.Path): Boolean = {
 //    var csOpen = List.empty[CallSiteLabel]
 //    var csClose = List.empty[CallSiteLabel]
-//    var fsStore = List.empty[FieldSensitiveLabel]
-//    var fsLoad = List.empty[FieldSensitiveLabel]
 //
 //    // Filter the labels by type
 //    path.edges.foreach(edge => {
@@ -459,12 +394,6 @@
 //            csOpen = csOpen ++ List(l)
 //          else
 //            csClose = csClose ++ List(l)
-//        }
-//        case l: FieldSensitiveLabel => {
-//          if (l.labelType == FieldSensitiveLoadLabel)
-//            fsLoad = fsLoad ++ List(l)
-//          else
-//            fsStore = fsStore ++ List(l)
 //        }
 //        case _ => {}
 //      }
@@ -483,27 +412,19 @@
 //      })
 //    })
 //
-//    // Get all the stores without a load
-//    val unmatchedStores = getUnmatchedFieldReferences(fsStore, fsLoad)
-//    // Get all the loads without a store
-//    val unmatchedLoads = getUnmatchedFieldReferences(fsLoad, fsStore)
-//
 //    val validCS = unopenedCS.isEmpty || unclosedCS.isEmpty || matchedUnopenedUnclosedCSCalleeMethod.isEmpty
 //
-//    val validFieldRefs = unmatchedLoads.isEmpty || unmatchedStores.isEmpty
-//    val valid = validCS && validFieldRefs
-//
-//    return validCS && validFieldRefs
+//    return validCS
 //  }
 //
 //  def nodes(): scala.collection.Set[GraphNode] = graph.nodes.map(node => node.toOuter).toSet
 //
-//  def edges(): scala.collection.Set[GraphEdgeCD] = graph.edges.map(edge => {
+//  def edges(): scala.collection.Set[GraphEdge] = graph.edges.map(edge => {
 //    val from = edge._1.toOuter
 //    val to = edge._2.toOuter
 //    val label = edge.toOuter.label.asInstanceOf[EdgeLabel]
 //
-//    GraphEdgeCD(from, to, label)
+//    GraphEdge(from, to, label)
 //  }).toSet
 //
 //  def numberOfNodes(): Int = graph.nodes.size

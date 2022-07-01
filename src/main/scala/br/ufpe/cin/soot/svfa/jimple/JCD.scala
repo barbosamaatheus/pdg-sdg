@@ -1,7 +1,7 @@
 package br.ufpe.cin.soot.svfa.jimple
 
 import br.ufpe.cin.soot.svfa.SVFA
-import br.ufpe.cin.soot.graph.{NodeType, _}
+import br.ufpe.cin.soot.graph.{NodeType, Statement, _}
 import br.ufpe.cin.soot.svfa.jimple.dsl.{DSL, LanguageParser}
 import br.ufpe.cin.soot.svfa.jimple.rules.RuleAction
 import br.ufpe.cin.soot.svfa.SourceSinkDef
@@ -29,11 +29,13 @@ import scala.collection.mutable.ListBuffer
 trait JCD extends JSVFA   {
 
   val allocationSitesCD = scala.collection.mutable.HashMap.empty[soot.Value, soot.Unit]
-  var cd = new br.ufpe.cin.soot.graph.GraphLabelKey()
+  var cd = new br.ufpe.cin.soot.graph.Graph()
+  val traversedMethodsCD = scala.collection.mutable.Set.empty[SootMethod]
 
   def buildCD() {
+    buildSparseValueFlowGraph()
     configureSoot()
-    Options.v().setPhaseOption("jb", "use-original-names:true")
+
     beforeGraphConstruction()
     val (pack2, t2) = createSceneTransformCD()
     PackManager.v().getPack(pack2).add(t2)
@@ -75,11 +77,11 @@ trait JCD extends JSVFA   {
   }
 
   def traverseCD(method: SootMethod, forceNewTraversal: Boolean = false) : Unit = {
-    if((!forceNewTraversal) && (method.isPhantom || traversedMethods.contains(method))) {
+    if((!forceNewTraversal) && (method.isPhantom || traversedMethodsCD.contains(method))) {
       return
     }
 
-    traversedMethods.add(method)
+    traversedMethodsCD.add(method)
 
     val body  = method.retrieveActiveBody()
 
@@ -127,32 +129,58 @@ trait JCD extends JSVFA   {
 
   def addControlDependenceEdge(s: soot.Unit, t: soot.Unit, typeEdge: Boolean, method: SootMethod): Unit = {
     if (s.isInstanceOf[GotoStmt] || t.isInstanceOf[GotoStmt]) return
-    var source = createNodeCD(method, s)
-    var target = createNodeCD(method, t)
-
-    if (s.isInstanceOf[UnitDummy]) {
-      source = createDummyNode(s, method)
-    }
-
-    if (t.isInstanceOf[UnitDummy]){
-      target = createDummyNode(t, method)
-    }
     val label = if (typeEdge) (createTrueEdgeLabel(s, t, method)) else (createFalseEdgeLabel(s, t, method))
 
-    addEdgeControlDependence(source, target, label)
+    if (s.isInstanceOf[UnitDummy]) {
+      if (t.isInstanceOf[UnitDummy]) {
+        addEdgeControlDependence(createDummyNode(s, method), createDummyNode(t, method), label)
+      }else{
+        addEdgeControlDependence(createDummyNode(s, method), createNode(method, t), label)
+      }
+    }else{
+      if (t.isInstanceOf[UnitDummy]) {
+        addEdgeControlDependence(createNode(method, s),  createDummyNode(t, method), label)
+      }else{
+        addEdgeControlDependence(createNode(method, s), createNode(method, t), label)
+
+      }
+    }
+
   }
 
-  def addEdgeControlDependence(source: GraphNode, target: GraphNode, label: EdgeLabelType): Boolean = {
+  def containsNodeCD(node: StatementNode): StatementNode = {
+    for (n <- cd.edges()){
+      var xx = n.from.asInstanceOf[StatementNode]
+      var yy = n.to.asInstanceOf[StatementNode]
+      if (xx.equals(node)) return n.from.asInstanceOf[StatementNode]
+      if (yy.equals(node)) return n.to.asInstanceOf[StatementNode]
+    }
+    return null
+  }
+
+  def addEdgeControlDependence(source: GraphNode, target: GraphNode, label: EdgeLabel): Boolean = {
     var res = false
     if(!runInFullSparsenessMode() || true) {
-      cd.addEdge(source, target, label)
+      var xy = containsNodeCD(source.asInstanceOf[StatementNode])
+      var xx = containsNodeCD(target.asInstanceOf[StatementNode])
+      if (xy != null){
+        if (xx != null){
+          cd.addEdge(xy, xx, label)
+        }else{
+          cd.addEdge(xy, target.asInstanceOf[StatementNode], label)
+        }
+
+      }else{
+        cd.addEdge(source, target, label)
+      }
+//      cd.addEdge(source, target, label)
       res = true
     }
     return res
   }
 
 
-  def createDummyNode(unit: soot.Unit, method: SootMethod): StatementNodeCD = {
+  def createDummyNode(unit: soot.Unit, method: SootMethod): StatementNode = {
     var node = createNodeCD(method, unit)
 
     if (unit.toString().contains("EntryPoint")) {
@@ -165,9 +193,9 @@ trait JCD extends JSVFA   {
     return node
   }
 
-  def createEntryPointNode(method: SootMethod): StatementNodeCD = {
+  def createEntryPointNode(method: SootMethod): StatementNode = {
     try {
-      return new StatementNodeCD(StmtDef(method.getDeclaringClass.toString, method.getSignature, "Entry Point", 0), SimpleNode)
+      return new StatementNode(br.ufpe.cin.soot.graph.Statement(method.getDeclaringClass.toString, method.getSignature, "Entry Point", 0), SimpleNode)
     } catch {
       case e: NullPointerException => {
         println ("Error creating node, an invalid statement.")
@@ -176,9 +204,9 @@ trait JCD extends JSVFA   {
     }
   }
 
-  def createStartNode(method: SootMethod): StatementNodeCD = {
+  def createStartNode(method: SootMethod): StatementNode = {
     try {
-      return new StatementNodeCD(StmtDef(method.getDeclaringClass.toString, method.getSignature, "Start", 0), SimpleNode)
+      return new StatementNode(br.ufpe.cin.soot.graph.Statement(method.getDeclaringClass.toString, method.getSignature, "Start", 0), SimpleNode)
     } catch {
       case e: NullPointerException => {
         println ("Error creating node, an invalid statement.")
@@ -187,9 +215,9 @@ trait JCD extends JSVFA   {
     }
   }
 
-  def createStopNode(method: SootMethod): StatementNodeCD = {
+  def createStopNode(method: SootMethod): StatementNode = {
     try {
-      return new StatementNodeCD(StmtDef(method.getDeclaringClass.toString, method.getSignature, "Stop", 0), SimpleNode)
+      return new StatementNode(br.ufpe.cin.soot.graph.Statement(method.getDeclaringClass.toString, method.getSignature, "Stop", 0), SimpleNode)
     } catch {
       case e: NullPointerException => {
         println ("Error creating node, an invalid statement.")
@@ -198,19 +226,18 @@ trait JCD extends JSVFA   {
     }
   }
 
-  def createTrueEdgeLabel(source: soot.Unit, target: soot.Unit, method: SootMethod): EdgeLabelType = {
-    val statement = br.ufpe.cin.soot.graph.StatementCD(method.getDeclaringClass.toString, method.getSignature, source.toString, source.getJavaSourceStartLineNumber)
-    EdgeLabelType(ContextStatement(statement, target), TrueLabel)
+  def createTrueEdgeLabel(source: soot.Unit, target: soot.Unit, method: SootMethod): EdgeLabel = {
+    val statement = br.ufpe.cin.soot.graph.Statement(method.getDeclaringClass.toString, method.getSignature, source.toString, source.getJavaSourceStartLineNumber)
+    TrueLabelType(TrueLabel)
   }
 
-  def createFalseEdgeLabel(source: soot.Unit, target: soot.Unit, method: SootMethod): EdgeLabelType = {
-    val statement = br.ufpe.cin.soot.graph.StatementCD(method.getDeclaringClass.toString, method.getSignature, source.toString, source.getJavaSourceStartLineNumber)
-    EdgeLabelType(ContextStatement(statement, target), FalseLabel)
+  def createFalseEdgeLabel(source: soot.Unit, target: soot.Unit, method: SootMethod): EdgeLabel = {
+    val statement = br.ufpe.cin.soot.graph.Statement(method.getDeclaringClass.toString, method.getSignature, source.toString, source.getJavaSourceStartLineNumber)
+    FalseLabelType(FalseLabel)
   }
 
-  def createNodeCD(method: SootMethod, stmt: soot.Unit): StatementNodeCD =
-    StatementNodeCD(StmtDef(method.getDeclaringClass.toString, method.getSignature, stmt.toString, stmt.getJavaSourceStartLineNumber), analyze(stmt))
-
+  def createNodeCD(method: SootMethod, stmt: soot.Unit): StatementNode =
+    StatementNode(br.ufpe.cin.soot.graph.Statement(method.getDeclaringClass.toString, method.getSignature, stmt.toString, stmt.getJavaSourceStartLineNumber), analyze(stmt))
 
   def reportConflictsCD(): scala.collection.Set[String] =
     findConflictingPathsCD().map(p => p.toString)
@@ -267,9 +294,9 @@ trait JCD extends JSVFA   {
         cont += +1
       }
 
-      var xy = x.isInstanceOf[EdgeLabelType]
-      if (x.isInstanceOf[EdgeLabelType]) {
-        val labelType = x.asInstanceOf[EdgeLabelType].labelType
+      var xy = x.isInstanceOf[EdgeLabel]
+      if (x.isInstanceOf[EdgeLabel]) {
+        val labelType = x.asInstanceOf[EdgeLabel].labelType
 
         if (labelType.toString.equals(TrueLabel.toString)) {
           s ++= " " + auxStr + "[penwidth=3][label=\"T\"]" + "\n"
