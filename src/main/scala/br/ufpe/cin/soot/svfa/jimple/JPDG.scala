@@ -1,18 +1,11 @@
 package br.ufpe.cin.soot.svfa.jimple
 
-import br.ufpe.cin.soot.graph
-import br.ufpe.cin.soot.graph.{DefLabel, DefLabelType, EdgeLabel, FalseLabel, GraphNode, SinkNode, SourceNode, StatementNode, StringLabel, TrueLabel, UnitDummy}
-import cats.implicits.catsSyntaxHash
-import scalax.collection.GraphPredef.anyToNode
-import scalax.collection.mutable.AdjacencyListGraph
+import br.ufpe.cin.soot.graph.{CallSiteLabel, CallSiteOpenLabel, DefLabel, DefLabelType, EdgeLabel, FalseLabelType, GraphNode, SinkNode, SourceNode, StatementNode, TrueLabelType}
 import soot.jimple._
 import soot.options.Options
-import soot.toolkits.graph.{ExceptionalBlockGraph, ExceptionalUnitGraph}
-import soot.toolkits.scalar.SimpleLocalDefs
-import soot.{Local, PackManager, Scene, SceneTransformer, SootMethod, Transform}
-
+import soot.toolkits.graph.{ExceptionalBlockGraph}
+import soot.{PackManager, Scene, SceneTransformer, SootMethod, Transform}
 import java.util
-import scala.collection.immutable.HashSet
 
 
 /**
@@ -28,7 +21,6 @@ abstract class JPDG extends JCD with JDFP   {
   var hashSetUnit = new util.HashSet[(StatementNode, StatementNode, EdgeLabel)]
 
   def buildPDG() {
-//    buildSparseValueFlowGraph()
 
     buildDFP()
     buildCD()
@@ -52,18 +44,7 @@ abstract class JPDG extends JCD with JDFP   {
       val from = e.from
       val label = e.label
       val to = e.to
-      var xy = containsNodePDG(from.asInstanceOf[StatementNode])
-      var xx = containsNodePDG(to.asInstanceOf[StatementNode])
-      if (xy != null){
-        if (xx != null){
-          pdg.addEdge(xy, xx, label)
-        }else{
-          pdg.addEdge(xy, to.asInstanceOf[StatementNode], label)
-        }
-
-      }else{
-        pdg.addEdge(from.asInstanceOf[StatementNode], to.asInstanceOf[StatementNode], label)
-      }
+      addNodeAndEdgePDG(from.asInstanceOf[StatementNode], to.asInstanceOf[StatementNode], label)
     }
 
     //Add cd edges in pdg
@@ -72,28 +53,35 @@ abstract class JPDG extends JCD with JDFP   {
       val from = e.from
       val label = e.label
       val to = e.to
-      var xy = containsNodePDG(from.asInstanceOf[StatementNode])
-      var xx = containsNodePDG(to.asInstanceOf[StatementNode])
-      if (xy != null){
-        if (xx != null){
-          pdg.addEdge(xy, xx, label)
-        }else{
-          pdg.addEdge(xy, to.asInstanceOf[StatementNode], label)
-        }
-
-      }else{
-        pdg.addEdge(from.asInstanceOf[StatementNode], to.asInstanceOf[StatementNode], label)
-      }
+      addNodeAndEdgePDG(from.asInstanceOf[StatementNode], to.asInstanceOf[StatementNode], label)
     }
 
   }
 
+  def addNodeAndEdgePDG(from: StatementNode, to: StatementNode, label: EdgeLabel): Unit = {
+    var auxNodeFrom = containsNodePDG(from)
+    var auxNodeTo = containsNodePDG(to)
+    if (auxNodeFrom != null){
+      if (auxNodeTo != null){
+        pdg.addEdge(auxNodeFrom, auxNodeTo, label)
+      }else{
+        pdg.addEdge(auxNodeFrom, to, label)
+      }
+    }else{
+      if (auxNodeTo != null) {
+        pdg.addEdge(from, auxNodeTo, label)
+      }else{
+        pdg.addEdge(from, to, label)
+      }
+    }
+  }
+
   def containsNodePDG(node: StatementNode): StatementNode = {
     for (n <- pdg.edges()){
-      var xx = n.from.asInstanceOf[StatementNode]
-      var yy = n.to.asInstanceOf[StatementNode]
-      if (xx.equals(node)) return n.from.asInstanceOf[StatementNode]
-      if (yy.equals(node)) return n.to.asInstanceOf[StatementNode]
+      var nodeFrom = n.from.asInstanceOf[StatementNode]
+      var nodeTo = n.to.asInstanceOf[StatementNode]
+      if (nodeFrom.equals(node)) return n.from.asInstanceOf[StatementNode]
+      if (nodeTo.equals(node)) return n.to.asInstanceOf[StatementNode]
     }
     return null
   }
@@ -163,25 +151,29 @@ abstract class JPDG extends JCD with JDFP   {
           if (op1.toString().equals(op2.toString())){
 
             try {
-              var xy = containsNodePDG(listDef(i)._2.asInstanceOf[StatementNode])
-              var xx = containsNodePDG(listDef(j)._2.asInstanceOf[StatementNode])
+              var auxNodeFrom = containsNodePDG(listDef(i)._2.asInstanceOf[StatementNode])
+              var auxNodeTo = containsNodePDG(listDef(j)._2.asInstanceOf[StatementNode])
 
-              val nextI = pdg.getAdjacentNodes(xy).get
-              val nextJ = pdg.getAdjacentNodes(xx).get
+              val nextI = pdg.getAdjacentNodes(auxNodeFrom).get
+              val nextJ = pdg.getAdjacentNodes(auxNodeTo).get
 
               for (n <- nextI){
                 for (m <- nextJ){
                   if (n.equals(m)){
                     val label = createDefEdgeLabel(listDef(i)._1.stmt, listDef(j)._1.stmt, method)
 
-                    if (xy != null){
-                      if (xx != null){
-                        pdg.addEdge(xy, xx, label)
+                    if (auxNodeFrom != null){
+                      if (auxNodeTo != null){
+                        pdg.addEdge(auxNodeFrom, auxNodeTo, label)
                       }else{
-                        pdg.addEdge(xy, nextJ.asInstanceOf[StatementNode], label)
+                        pdg.addEdge(auxNodeFrom, nextJ.asInstanceOf[StatementNode], label)
                       }
-                    }else{
-                      pdg.addEdge(nextI.asInstanceOf[StatementNode], nextJ.asInstanceOf[StatementNode], label)
+                    }else {
+                      if (auxNodeTo != null) {
+                        pdg.addEdge(nextI.asInstanceOf[StatementNode], auxNodeTo, label)
+                      } else {
+                        pdg.addEdge(nextI.asInstanceOf[StatementNode], nextJ.asInstanceOf[StatementNode], label)
+                      }
                     }
                   }
                 }
@@ -210,33 +202,12 @@ abstract class JPDG extends JCD with JDFP   {
     listDef = listDef:+ (assignStmt, node, branch)
   }
 
-//  def addDefEdges(s: soot.Unit, t: soot.Unit, method: SootMethod): Unit = {
-//    if (s.isInstanceOf[GotoStmt] || t.isInstanceOf[GotoStmt]) return
-//    var source = createNode(method, s)
-//    var target = createNode(method, t)
-//
-//    val auxLabel = createDefEdgeLabel(s, t, method)
-//
-//    addDefEdge(source, target, auxLabel)
-//  }
-
   def addDefEdge(source: GraphNode, target: GraphNode, label: EdgeLabel): Boolean = {
     var res = false
     if(!runInFullSparsenessMode() || true) {
-      //      val label = createLoopEdgeLabel()
-      var xy = containsNodePDG(source.asInstanceOf[StatementNode])
-      if (xy != null){
-        var xx = containsNodePDG(target.asInstanceOf[StatementNode])
-        if (xx != null){
-          pdg.addEdge(xy, xx, label)
-        }else{
-          pdg.addEdge(xy, target, label)
-        }
-        print(xy)
-      }else{
-        pdg.addEdge(source, target, label)
-      }
-//      pdg.addEdge(source, target, label)
+
+      addNodeAndEdgePDG(source.asInstanceOf[StatementNode], target.asInstanceOf[StatementNode], label)
+
       res = true
     }
     return res
@@ -282,41 +253,25 @@ abstract class JPDG extends JCD with JDFP   {
         case _          => ""
       }
 
-      s ++= " " + "\"" + n.show()+" - "+n.hashCode().toString+"\"" + nodeColor + "\n"
+      s ++= " " + "\"" + n.show()+"\"" + nodeColor + "\n"
     }
 
-    var edgeNodes = pdg.graph.edges.toOuter
+    s  ++= "\n"
 
-    for (i <- edgeNodes) {
-      var x = i.value.label
-
-      var auxStr = ""
-      var cont = 0
-      for (auxNode <- i) {
-        if (cont == 0) {
-          auxStr += "\"" + auxNode.show()+" - "+auxNode.hashCode().toString;
-        } else {
-          auxStr += "\"" + " -> " + "\"" + auxNode.show()+" - "+auxNode.hashCode().toString+ "\"";
+    for (e <- pdg.edges) {
+      val edge = "\"" + e.from.show() + "\"" + " -> " + "\"" + e.to.show() + "\""
+      var l = e.label
+      val label: String = e.label match {
+        case c: CallSiteLabel =>  {
+          if (c.labelType == CallSiteOpenLabel) { "[label=\"cs(\"]" }
+          else { "[label=\"cs)\"]" }
         }
-        cont += +1
+        case c: TrueLabelType =>{ "[penwidth=3][label=\"T\"]" }
+        case c: FalseLabelType => { "[penwidth=3][label=\"F\"]" }
+        case c: DefLabelType => { "[style=dashed, color=black]" }
+        case _ => ""
       }
-
-      var xy = x.isInstanceOf[EdgeLabel]
-      if (x.isInstanceOf[EdgeLabel]) {
-        val labelType = x.asInstanceOf[EdgeLabel].labelType
-
-        if (labelType.toString.equals(TrueLabel.toString)) {
-          s ++= " " + auxStr + "[penwidth=3][label=\"T\"]" + "\n"
-        } else if (labelType.toString.equals(FalseLabel.toString)) {
-          s ++= " " + auxStr + "[penwidth=3][label=\"F\"]" + "\n"
-        } else if (labelType.toString.equals(DefLabel.toString)) {
-          s ++= " " + auxStr + "[style=dashed, color=black]" + "\n"
-        } else {
-          s ++= " " + auxStr + "\n"
-        }
-      } else if (x.isInstanceOf[StringLabel]) {
-        s ++= " " + auxStr + "\n"
-      }
+      s ++= " " + edge + " " + label + "\n"
     }
     s ++= "}"
     return s.toString()

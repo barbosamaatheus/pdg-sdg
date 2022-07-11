@@ -1,9 +1,10 @@
 package br.ufpe.cin.soot
 
 import br.ufpe.cin.soot.graph.{NodeType, SimpleNode, SinkNode, SourceNode}
+import br.ufpe.cin.soot.svfa.jimple.PropagateTaint
 import soot.jimple.{AssignStmt, InvokeExpr, InvokeStmt}
 
-class PDG6Test(leftchangedlines: Array[Int], rightchangedlines: Array[Int]) extends JPDGTest {
+class PDG6Test(leftchangedlines: Array[Int], rightchangedlines: Array[Int]) extends JPDGTest  with PropagateTaint{
   override def getClassName(): String = "samples.PDG6"
   override def getMainMethod(): String = "main"
 

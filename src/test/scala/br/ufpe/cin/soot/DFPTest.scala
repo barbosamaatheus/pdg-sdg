@@ -1,8 +1,9 @@
 package br.ufpe.cin.soot
 
 import br.ufpe.cin.soot.graph._
+import br.ufpe.cin.soot.svfa.jimple.PropagateTaint
 
-class DFPTest(leftchangedlines: Array[Int], rightchangedlines: Array[Int]) extends JDFPTest {
+class DFPTest(leftchangedlines: Array[Int], rightchangedlines: Array[Int]) extends JDFPTest  with PropagateTaint {
   override def getClassName(): String = "samples.BlackBoard"
   override def getMainMethod(): String = "main"
 

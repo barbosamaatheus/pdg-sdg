@@ -2,7 +2,7 @@ package br.ufpe.cin.soot.svfa.jimple
 
 import java.util
 import br.ufpe.cin.soot.svfa.jimple.rules.{ComposedRuleAction, DoNothing, MissingActiveBodyRule, NamedMethodRule, NativeRule, RuleAction}
-import br.ufpe.cin.soot.graph.{CallSiteCloseLabel, CallSiteLabel, CallSiteOpenLabel, ContextSensitiveRegion, GraphNode, SinkNode, SourceNode, StatementNode}
+import br.ufpe.cin.soot.graph.{CallSiteCloseLabel, CallSiteLabel, CallSiteOpenLabel, ContextSensitiveRegion, EdgeLabel, GraphNode, SinkNode, SourceNode, StatementNode}
 import br.ufpe.cin.soot.svfa.jimple.dsl.{DSL, LanguageParser}
 import br.ufpe.cin.soot.svfa.{SVFA, SourceSinkDef}
 import com.typesafe.scalalogging.LazyLogging
@@ -25,7 +25,7 @@ import scala.collection.mutable.ListBuffer
   * A Jimple based implementation of
   * SVFA.
   */
-abstract class JSVFA extends SVFA with Analysis with FieldSensitiveness with SourceSinkDef with LazyLogging  with DSL   {
+abstract class JSVFA extends SVFA with Analysis with FieldSensitiveness with ObjectPropagation with SourceSinkDef with LazyLogging  with DSL   {
 
 
   var methods = 0
@@ -397,11 +397,22 @@ abstract class JSVFA extends SVFA with Analysis with FieldSensitiveness with Sou
       }
 
       allocationNodes.foreach(source => {
-          val target = createNode(method, stmt)
-          updateGraph(source, target)
-          svg.getAdjacentNodes(source).get.foreach(s => updateGraph(s, target))
-        })
+        val target = createNode(method, stmt)
+        updateGraph(source, target)
+        svg.getAdjacentNodes(source).get.foreach(s => updateGraph(s, target))
+      })
 
+      // create an edge from the base defs to target
+      // if an object is tainted, we should propagate the taint to all
+      // fields as well. Not completely sure if this should be
+      // the case.
+      if(propagateObjectTaint()) {
+        defs.getDefsOfAt(base.asInstanceOf[Local], stmt).forEach(source => {
+          val sourceNode = createNode(method, source)
+          val targetNode = createNode(method, stmt)
+          updateGraph(sourceNode, targetNode)
+        })
+      }
     }
   }
 
@@ -696,46 +707,39 @@ abstract class JSVFA extends SVFA with Analysis with FieldSensitiveness with Sou
 
   def containsNodeDF(node: StatementNode): StatementNode = {
     for (n <- svg.edges()){
-      var xx = n.from.asInstanceOf[StatementNode]
-      var yy = n.to.asInstanceOf[StatementNode]
-      if (xx.equals(node)) return n.from.asInstanceOf[StatementNode]
-      if (yy.equals(node)) return n.to.asInstanceOf[StatementNode]
+      var auxNodeFrom = n.from.asInstanceOf[StatementNode]
+      var auxNodeTo = n.to.asInstanceOf[StatementNode]
+      if (auxNodeFrom.equals(node)) return n.from.asInstanceOf[StatementNode]
+      if (auxNodeTo.equals(node)) return n.to.asInstanceOf[StatementNode]
     }
     return null
   }
-  private def updateGraph(source: GraphNode, target: GraphNode, forceNewEdge: Boolean = false): Boolean = {
+  def updateGraph(source: GraphNode, target: GraphNode, forceNewEdge: Boolean = false): Boolean = {
     var res = false
     if(!runInFullSparsenessMode() || true) {
-      var xy = containsNodeDF(source.asInstanceOf[StatementNode])
-      var xx = containsNodeDF(target.asInstanceOf[StatementNode])
-      if (xy != null){
-        if (xx != null){
-          svg.addEdge(xy, xx)
-        }else{
-          svg.addEdge(xy, target.asInstanceOf[StatementNode])
-        }
-      }else{
-        svg.addEdge(source, target)
-      }
+      addNodeAndEdgeDF(source.asInstanceOf[StatementNode], target.asInstanceOf[StatementNode])
 
       res = true
     }
-
-
-
-  // this first case can still introduce irrelevant nodes
-//    if(svg.contains(source)) {//) || svg.map.contains(target)) {
-//      svg.addEdge(source, target)
-//      res = true
-//    }
-//    else if(source.nodeType == SourceNode || source.nodeType == SinkNode) {
-//      svg.addEdge(source, target)
-//      res = true
-//    }
-//    else if(target.nodeType == SourceNode || target.nodeType == SinkNode) {
-//      svg.addEdge(source, target)
-//      res = true
-//    }
     return res
   }
+
+  def addNodeAndEdgeDF(from: StatementNode, to: StatementNode): Unit = {
+    var auxNodeFrom = containsNodeDF(from)
+    var auxNodeTo = containsNodeDF(to)
+    if (auxNodeFrom != null){
+      if (auxNodeTo != null){
+        svg.addEdge(auxNodeFrom, auxNodeTo)
+      }else{
+        svg.addEdge(auxNodeFrom, to)
+      }
+    }else {
+      if (auxNodeTo != null) {
+        svg.addEdge(from, auxNodeTo)
+      } else {
+        svg.addEdge(from, to)
+      }
+    }
+  }
+
 }

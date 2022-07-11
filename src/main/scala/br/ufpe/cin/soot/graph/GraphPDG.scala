@@ -63,33 +63,3 @@ class AuxGraph extends Graph{
     graph.addLEdge(source, target)(label)
   }
 }
-
-
-//case class StmtDef(className: String, method: String, stmt: String, line: Int)
-//
-//case class StatementCD(className: String, method: String, stmt: String, line: Int, sootUnit: soot.Unit = null, sootMethod: soot.SootMethod = null)
-//
-//case class StatementNodeCD(stmt: StmtDef, stmtType: NodeType) extends GraphNode {
-//  override type T = StmtDef
-//  override val value: StmtDef = stmt
-//  override val nodeType: NodeType = stmtType
-//
-//  override def method(): soot.SootMethod = null
-//
-//  override def unit(): soot.Unit = null
-//
-////  override def show(): String = value.stmt
-//
-//  override def show(): String = "(" ++ value.method + ": " + value.stmt + " - " + value.line + " <" + nodeType.toString + ">)"
-//
-//  override def toString: String =
-//    "Node(" + value.method + "," + value.stmt + "," + value.line.toString + "," + nodeType.toString + ")"
-//
-//  override def equals(o: Any): Boolean = {
-//    o match {
-//      case stmt: StatementNode => stmt.value == value && stmt.nodeType == nodeType
-//      case _ => false
-//    }
-//  }
-//}
-//

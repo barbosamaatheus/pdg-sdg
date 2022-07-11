@@ -54,11 +54,11 @@ case class StatementNode(value: Statement, nodeType: NodeType) extends GraphNode
     o match {
 //      case stmt: StatementNode => stmt.value.toString == value.toString
 //      case stmt: StatementNode => stmt.value == value && stmt.nodeType == nodeType
-      case stmt: StatementNode => stmt.value.className.toString == value.className.toString &&
-                                  stmt.value.method.toString == value.method.toString &&
-                                  stmt.value.stmt.toString == value.stmt.toString &&
-                                  stmt.value.line.toString == value.line.toString &&
-                                  stmt.nodeType.toString == nodeType.toString
+      case stmt: StatementNode => stmt.value.className.equals(value.className) &&
+                                  stmt.value.method.equals(value.method) &&
+                                  stmt.value.stmt.equals(value.stmt) &&
+                                  stmt.value.line.equals(value.line) &&
+                                  stmt.nodeType.equals(nodeType)
       case _ => false
     }
   }
@@ -166,19 +166,15 @@ class Graph() {
     addEdge(source, target, StringLabel("Normal"))
 
   def addEdge(source: GraphNode, target: GraphNode, label: EdgeLabel): Unit = {
-//    if(source == target) {
-//      return
-//    }
+    if(source == target) {
+      return
+    }
 
     implicit val factory = scalax.collection.edge.LkDiEdge
     graph.addLEdge(source, target)(label)
   }
 
   def addEdge(source: StatementNode, target: StatementNode, label: EdgeLabel): Unit = {
-    //    if(source == target) {
-    //      return
-    //    }
-
     implicit val factory = scalax.collection.edge.LkDiEdge
     graph.addLEdge(source, target)(label)
   }

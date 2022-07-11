@@ -159,35 +159,6 @@ trait JDFP extends JSVFA {
     })
   }
 
-  def containsNodeDFP(node: StatementNode): StatementNode = {
-    for (n <- svg.edges()){
-      var xx = n.from.asInstanceOf[StatementNode]
-      var yy = n.to.asInstanceOf[StatementNode]
-      if (xx.equals(node)) return n.from.asInstanceOf[StatementNode]
-      if (yy.equals(node)) return n.to.asInstanceOf[StatementNode]
-    }
-    return null
-  }
-
-  def updateGraph(source: GraphNode, target: GraphNode, forceNewEdge: Boolean = false): Boolean = {
-    var res = false
-    if (!runInFullSparsenessMode() || true) {
-      var xy = containsNodeDFP(source.asInstanceOf[StatementNode])
-      var xx = containsNodeDFP(target.asInstanceOf[StatementNode])
-      if (xy != null){
-        if (xx != null){
-          svg.addEdge(xy, xx)
-        }else{
-          svg.addEdge(xy, target.asInstanceOf[StatementNode])
-        }
-      }else{
-        svg.addEdge(source, target)
-      }
-      res = true
-    }
-    return res
-  }
-
   def loadRule(stmt: soot.Unit, ref: InstanceFieldRef, method: SootMethod, defs: SimpleLocalDefs) : scala.Unit =
   {
     val base = ref.getBase

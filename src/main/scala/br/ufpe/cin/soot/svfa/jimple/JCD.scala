@@ -1,25 +1,10 @@
 package br.ufpe.cin.soot.svfa.jimple
 
-import br.ufpe.cin.soot.svfa.SVFA
-import br.ufpe.cin.soot.graph.{NodeType, Statement, _}
-import br.ufpe.cin.soot.svfa.jimple.dsl.{DSL, LanguageParser}
-import br.ufpe.cin.soot.svfa.jimple.rules.RuleAction
-import br.ufpe.cin.soot.svfa.SourceSinkDef
-import com.typesafe.scalalogging.LazyLogging
-import jdk.nashorn.internal.runtime.regexp.joni.constants.NodeType
-import soot.jimple.{InvokeStmt, _}
-import soot.jimple.internal.{JArrayRef, JAssignStmt}
-import soot.jimple.spark.ondemand.DemandCSPointsTo
-import soot.jimple.spark.pag
-import soot.jimple.spark.pag.{AllocNode, PAG}
-import soot.jimple.spark.sets.{DoublePointsToSet, HybridPointsToSet, P2SetVisitor}
-import soot.options.Options
-import soot.toolkits.graph.{ExceptionalUnitGraph, MHGPostDominatorsFinder}
-import soot.toolkits.scalar.SimpleLocalDefs
-import soot.{ArrayType, Local, PackManager, Scene, SceneTransformer, SootField, SootMethod, Transform, jimple}
-
+import br.ufpe.cin.soot.graph._
+import soot.jimple._
+import soot.toolkits.graph.MHGPostDominatorsFinder
+import soot.{PackManager, Scene, SceneTransformer, SootMethod, Transform}
 import java.util
-import scala.collection.mutable.ListBuffer
 
 
 /**
@@ -33,7 +18,6 @@ trait JCD extends JSVFA   {
   val traversedMethodsCD = scala.collection.mutable.Set.empty[SootMethod]
 
   def buildCD() {
-    buildSparseValueFlowGraph()
     configureSoot()
 
     beforeGraphConstruction()
@@ -171,9 +155,12 @@ trait JCD extends JSVFA   {
         }
 
       }else{
-        cd.addEdge(source, target, label)
+        if (xx != null) {
+          cd.addEdge(source, xx, label)
+        }else{
+          cd.addEdge(source, target, label)
+        }
       }
-//      cd.addEdge(source, target, label)
       res = true
     }
     return res
@@ -278,38 +265,22 @@ trait JCD extends JSVFA   {
       s ++= " " + "\"" + n.show() + "\"" + nodeColor + "\n"
     }
 
-    var edgeNodes = cd.graph.edges.toOuter
+    s  ++= "\n"
 
-    for (i <- edgeNodes) {
-      var x = i.value.label
-
-      var auxStr = ""
-      var cont = 0
-      for (auxNode <- i) {
-        if (cont == 0) {
-          auxStr += "\"" + auxNode.show();
-        } else {
-          auxStr += "\"" + " -> " + "\"" + auxNode.show() + "\"";
+    for (e <- cd.edges) {
+      val edge = "\"" + e.from.show() + "\"" + " -> " + "\"" + e.to.show() + "\""
+      var l = e.label
+      val label: String = e.label match {
+        case c: CallSiteLabel =>  {
+          if (c.labelType == CallSiteOpenLabel) { "[label=\"cs(\"]" }
+          else { "[label=\"cs)\"]" }
         }
-        cont += +1
+        case c: TrueLabelType =>{ "[penwidth=3][label=\"T\"]" }
+        case c: FalseLabelType => { "[penwidth=3][label=\"F\"]" }
+        case c: DefLabelType => { "[style=dashed, color=black]" }
+        case _ => ""
       }
-
-      var xy = x.isInstanceOf[EdgeLabel]
-      if (x.isInstanceOf[EdgeLabel]) {
-        val labelType = x.asInstanceOf[EdgeLabel].labelType
-
-        if (labelType.toString.equals(TrueLabel.toString)) {
-          s ++= " " + auxStr + "[penwidth=3][label=\"T\"]" + "\n"
-        } else if (labelType.toString.equals(FalseLabel.toString)) {
-          s ++= " " + auxStr + "[penwidth=3][label=\"F\"]" + "\n"
-        } else if (labelType.toString.equals(DefLabel.toString)) {
-          s ++= " " + auxStr + "[style=dashed, color=black]" + "\n"
-        } else {
-          s ++= " " + auxStr + "\n"
-        }
-      } else if (x.isInstanceOf[StringLabel]) {
-        s ++= " " + auxStr + "\n"
-      }
+      s ++= " " + edge + " " + label + "\n"
     }
     s ++= "}"
     return s.toString()
