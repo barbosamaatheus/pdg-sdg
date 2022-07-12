@@ -444,4 +444,12 @@ class Graph() {
   def numberOfNodes(): Int = graph.nodes.size
 
   def numberOfEdges(): Int = graph.edges.size
+  /*
+ * creates a graph node from a sootMethod / sootUnit
+ */
+  def createNode(method: SootMethod, stmt: soot.Unit, f: (soot.Unit) => NodeType): StatementNode =
+    StatementNode(br.ufpe.cin.soot.graph.Statement(method.getDeclaringClass.toString, method.getSignature, stmt.toString,
+      stmt.getJavaSourceStartLineNumber, stmt, method), f(stmt))
+
 }
+

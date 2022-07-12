@@ -1,9 +1,11 @@
 package br.ufpe.cin.soot.svfa.jimple
 
 import br.ufpe.cin.soot.graph._
+import br.ufpe.cin.soot.svfa.SourceSinkDef
 import soot.jimple._
 import soot.toolkits.graph.MHGPostDominatorsFinder
 import soot.{PackManager, Scene, SceneTransformer, SootMethod, Transform}
+
 import java.util
 
 
@@ -11,11 +13,13 @@ import java.util
  * A Jimple based implementation of
  * Control Dependence Analysis.
  */
-trait JCD extends JSVFA   {
+trait JCD extends SootConfiguration with SourceSinkDef {
 
   val allocationSitesCD = scala.collection.mutable.HashMap.empty[soot.Value, soot.Unit]
   var cd = new br.ufpe.cin.soot.graph.Graph()
   val traversedMethodsCD = scala.collection.mutable.Set.empty[SootMethod]
+  var methods = 0
+  def runInFullSparsenessMode() = true
 
   def buildCD() {
     configureSoot()
@@ -131,6 +135,10 @@ trait JCD extends JSVFA   {
     }
 
   }
+
+  def createNode(method: SootMethod, stmt: soot.Unit): StatementNode =
+    cd.createNode(method, stmt, analyze)
+
 
   def containsNodeCD(node: StatementNode): StatementNode = {
     for (n <- cd.edges()){

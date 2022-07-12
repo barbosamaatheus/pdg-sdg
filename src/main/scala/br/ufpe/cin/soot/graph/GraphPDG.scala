@@ -62,4 +62,5 @@ class AuxGraph extends Graph{
     implicit val factory = scalax.collection.edge.LkDiEdge
     graph.addLEdge(source, target)(label)
   }
+
 }

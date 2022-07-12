@@ -25,8 +25,7 @@ import scala.collection.mutable.ListBuffer
   * A Jimple based implementation of
   * SVFA.
   */
-abstract class JSVFA extends SVFA with Analysis with FieldSensitiveness with ObjectPropagation with SourceSinkDef with LazyLogging  with DSL   {
-
+abstract class JSVFA extends SVFA with Analysis with FieldSensitiveness with ObjectPropagation with SourceSinkDef with LazyLogging  with DSL {
 
   var methods = 0
   val traversedMethods = scala.collection.mutable.Set.empty[SootMethod]
@@ -579,8 +578,7 @@ abstract class JSVFA extends SVFA with Analysis with FieldSensitiveness with Obj
    * creates a graph node from a sootMethod / sootUnit
    */
   def createNode(method: SootMethod, stmt: soot.Unit): StatementNode =
-    StatementNode(br.ufpe.cin.soot.graph.Statement(method.getDeclaringClass.toString, method.getSignature, stmt.toString,
-      stmt.getJavaSourceStartLineNumber, stmt, method), analyze(stmt))
+    svg.createNode(method, stmt, analyze)
 
 
   def createCSOpenLabel(method: SootMethod, stmt: soot.Unit, callee: SootMethod): CallSiteLabel = {

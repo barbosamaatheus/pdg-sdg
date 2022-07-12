@@ -22,10 +22,10 @@ abstract class JPDG extends JCD with JDFP   {
 
   def buildPDG() {
 
-    buildDFP()
-    buildCD()
+    buildDFP() //svg
+    buildCD()  //cd
 
-    mergeDFPAndCD()
+    mergeDFPAndCD() //pdg
 
     Options.v().setPhaseOption("jb", "use-original-names:true")
 

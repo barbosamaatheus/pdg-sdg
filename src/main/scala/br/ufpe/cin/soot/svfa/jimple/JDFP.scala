@@ -22,21 +22,24 @@ trait JDFP extends JSVFA {
   val allocationSitesDFP = scala.collection.mutable.HashMap.empty[soot.Value, soot.Unit]
   val traversedMethodsDF = scala.collection.mutable.Set.empty[SootMethod]
 
-  def buildDFP() {
-    configureSoot()
-
-    Options.v().setPhaseOption("jb", "use-original-names:true")
-
-    beforeGraphConstruction()
-
+  def buildDFP() { //Excluir
     buildSparseValueFlowGraph()
+  }
 
+  override def buildSparseValueFlowGraph() {
+    configureSoot()
+    beforeGraphConstruction()
+    val (pack1, t1) = createSceneTransform()
     val (pack2, t2) = createSceneTransformDFP()
+
+    PackManager.v().getPack(pack1).add(t1)
     PackManager.v().getPack(pack2).add(t2)
+
     configurePackages().foreach(p => PackManager.v().getPack(p).apply())
 
     afterGraphConstruction()
   }
+
   def createSceneTransformDFP(): (String, Transform) = ("wjtp", new Transform("wjtp.dfp", new TransformerDFP()))
 
   class TransformerDFP extends SceneTransformer {

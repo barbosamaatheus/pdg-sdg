@@ -13,7 +13,7 @@ class TestSuite extends FunSuite with BeforeAndAfter {
     assert(svfa.reportConflicts().size == 6)
   }
 
-  ignore("CD BlackBoardTest sample") {
+  test("CD BlackBoardTest sample") {
     val cd = new CDTest( Array (8), Array (11))
     cd.buildCD()
 
@@ -21,7 +21,7 @@ class TestSuite extends FunSuite with BeforeAndAfter {
     println(cd.cdToDotModel())
   }
 
-  ignore("DF+ BlackBoardTest sample") {
+  test("DF+ BlackBoardTest sample") {
     val dfp = new DFPTest( Array (7), Array (8))
     dfp.buildDFP()
     println(dfp.svgToDotModel())
