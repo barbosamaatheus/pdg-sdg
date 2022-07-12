@@ -1,7 +1,7 @@
 package br.ufpe.cin.soot.svfa.jimple.dsl
 
 import br.ufpe.cin.soot.svfa.jimple.JSVFA
-import br.ufpe.cin.soot.svfa.jimple.rules.{ComposedRuleAction, DoNothing, MethodRule, MissingActiveBodyRule, NamedMethodRule, NativeRule, RuleAction}
+import br.ufpe.cin.soot.svfa.jimple.rules._
 
 import scala.collection.mutable.HashMap
 

@@ -2,7 +2,7 @@ package br.ufpe.cin.soot.svfa.jimple
 
 import soot._
 
-abstract class Statement(val base: Unit)
+abstract class Statement(val base: Unit){}
 
 case class AssignStmt(b: Unit) extends Statement(b) {
   val stmt = base.asInstanceOf[soot.jimple.AssignStmt]
@@ -10,11 +10,6 @@ case class AssignStmt(b: Unit) extends Statement(b) {
 case class InvokeStmt(b: Unit) extends Statement(b) {
   val stmt = base.asInstanceOf[soot.jimple.InvokeStmt]
 }
-
-case class IfStmt(b: Unit) extends Statement(b) {
-  val stmt = base.asInstanceOf[soot.jimple.IfStmt]
-}
-
 case class InvalidStmt(b: Unit) extends Statement(b)
 
 object Statement {
@@ -24,8 +19,6 @@ object Statement {
     }
     else if(base.isInstanceOf[soot.jimple.InvokeStmt]) {
       InvokeStmt(base)
-    }else if(base.isInstanceOf[soot.jimple.IfStmt]) {
-      IfStmt(base)
     }
     else InvalidStmt(base)
 }

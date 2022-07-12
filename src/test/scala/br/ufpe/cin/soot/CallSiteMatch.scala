@@ -46,7 +46,7 @@ class CallSiteMatchTestSuite extends FunSuite {
   }
 
   test("in the class CallSiteMatch3 we should detect 1 conflict of a unclosed and unopened " +
-      "callsite test case") {
+    "callsite test case") {
     val svfa = new CallSiteMatch("samples.callSiteMatch.CallSiteMatch3", "main")
     svfa.buildSparseValueFlowGraph()
     assert(svfa.reportConflicts().size == 1)

@@ -17,6 +17,7 @@ public class StringConcatSample {
         sink(s4);
         sink(s5);
         sink(s6);
+        sink(s1+s2);
     }
     private static String source() {
         return "secret";

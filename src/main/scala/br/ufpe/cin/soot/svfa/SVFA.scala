@@ -1,19 +1,17 @@
 package br.ufpe.cin.soot.svfa
 
-import br.ufpe.cin.soot.graph.{Graph, LambdaNode, SinkNode, SourceNode, StringLabel}
-
 import java.io.File
+import br.ufpe.cin.soot.graph.{CallSiteLabel, CallSiteOpenLabel, GraphNode, SinkNode, SourceNode, StatementNode, StringLabel}
 import soot._
 import soot.options.Options
 
 import scala.collection.JavaConverters._
+import scala.collection.mutable
 
 sealed trait CG
 
 case object CHA extends CG
-
 case object SPARK_LIBRARY extends CG
-
 case object SPARK extends CG
 
 /**
@@ -23,9 +21,7 @@ case object SPARK extends CG
 abstract class SVFA {
 
   protected var pointsToAnalysis: PointsToAnalysis = _
-  var svg = new Graph()
-  var cd = new Graph()
-  var svgcd = new Graph()
+  var svg = new br.ufpe.cin.soot.graph.Graph()
 
   def sootClassPath(): String
 
@@ -66,9 +62,7 @@ abstract class SVFA {
     Options.v().set_full_resolver(true)
     Options.v().set_keep_line_number(true)
     Options.v().set_prepend_classpath(true)
-
     Options.v().setPhaseOption("jb", "use-original-names:true")
-
     configureCallGraphPhase()
 
     Scene.v().loadNecessaryClasses()
@@ -78,7 +72,11 @@ abstract class SVFA {
   def configureCallGraphPhase() {
     callGraph() match {
       case CHA => Options.v().setPhaseOption("cg.cha", "on")
-      case SPARK => Options.v().setPhaseOption("cg.spark", "on")
+      case SPARK => {
+        Options.v().setPhaseOption("cg.spark", "on")
+        Options.v().setPhaseOption("cg.spark", "cs-demand:true")
+        Options.v().setPhaseOption("cg.spark", "string-constants:true")
+      }
       case SPARK_LIBRARY => {
         Options.v().setPhaseOption("cg.spark", "on")
         Options.v().setPhaseOption("cg", "library:any-subtype")
@@ -86,7 +84,7 @@ abstract class SVFA {
     }
   }
 
-  def findConflictingPaths(): scala.collection.Set[List[LambdaNode]] = {
+  def findConflictingPaths(): scala.collection.Set[List[GraphNode]] = {
     if (svg.fullGraph) {
       val conflicts = svg.findPathsFullGraph()
       return conflicts.toSet
@@ -97,7 +95,7 @@ abstract class SVFA {
       //      val conflicts = for(source <- sourceNodes; sink <- sinkNodes)
       //         yield svg.findPath(source, sink)
 
-      var conflicts: List[List[LambdaNode]] = List()
+      var conflicts: List[List[GraphNode]] = List()
       sourceNodes.foreach(source => {
         sinkNodes.foreach(sink => {
           val paths = svg.findPath(source, sink)
@@ -109,77 +107,6 @@ abstract class SVFA {
     }
   }
 
-
-  def findConflictingPathsSVG(): scala.collection.Set[List[LambdaNode]] = {
-    if (svg.fullGraph) {
-      val conflicts = svg.findPathsFullGraph()
-      return conflicts.toSet
-    } else {
-      val sourceNodes = svg.nodes.filter(n => n.nodeType == SourceNode)
-      val sinkNodes = svg.nodes.filter(n => n.nodeType == SinkNode)
-
-      var conflicts: List[List[LambdaNode]] = List()
-      sourceNodes.foreach(source => {
-        sinkNodes.foreach(sink => {
-          val paths = svg.findPath(source, sink)
-          conflicts = conflicts ++ paths
-        })
-      })
-
-      conflicts.filter(p => p.nonEmpty).toSet
-    }
-  }
-
-
-  def findConflictingPathsCD(): scala.collection.Set[List[LambdaNode]] = {
-    if (cd.fullGraph) {
-      val conflicts = cd.findPathsFullGraph()
-      return conflicts.toSet
-    } else {
-      val sourceNodes = cd.nodes.filter(n => n.nodeType == SourceNode)
-      val sinkNodes = cd.nodes.filter(n => n.nodeType == SinkNode)
-
-      var conflicts: List[List[LambdaNode]] = List()
-      sourceNodes.foreach(source => {
-        sinkNodes.foreach(sink => {
-          val paths = cd.findPath(source, sink)
-          conflicts = conflicts ++ paths
-        })
-      })
-
-      conflicts.filter(p => p.nonEmpty).toSet
-    }
-  }
-
-
-  def findConflictingPathsSVGCD(): scala.collection.Set[List[LambdaNode]] = {
-    if (svgcd.fullGraph) {
-      val conflicts = svgcd.findPathsFullGraph()
-      return conflicts.toSet
-    } else {
-      val sourceNodes = svgcd.nodes.filter(n => n.nodeType == SourceNode)
-      val sinkNodes = svgcd.nodes.filter(n => n.nodeType == SinkNode)
-
-      var conflicts: List[List[LambdaNode]] = List()
-      sourceNodes.foreach(source => {
-        sinkNodes.foreach(sink => {
-          val paths = svgcd.findPath(source, sink)
-          conflicts = conflicts ++ paths
-        })
-      })
-
-      conflicts.filter(p => p.nonEmpty).toSet
-    }
-  }
-
-  def reportConflictsCD(): scala.collection.Set[String] =
-    findConflictingPathsCD().map(p => p.toString)
-
-  def reportConflictsSVG(): scala.collection.Set[String] =
-    findConflictingPathsSVG().map(p => p.toString)
-
-  def reportConflictsSVGCD(): scala.collection.Set[String] =
-    findConflictingPathsSVGCD().map(p => p.toString)
 
   def reportConflicts(): scala.collection.Set[String] =
     findConflictingPaths().map(p => p.toString)
@@ -195,163 +122,38 @@ abstract class SVFA {
     var nodeColor = ""
     s ++= "digraph { \n"
 
-    for(n <- svg.nodes) {
-      nodeColor = n.nodeType match  {
+    for (n <- svg.nodes) {
+      nodeColor = n.nodeType match {
         case SourceNode => "[fillcolor=blue, style=filled]"
-        case SinkNode   => "[fillcolor=red, style=filled]"
-        case _          => ""
+        case SinkNode => "[fillcolor=red, style=filled]"
+        case _ => ""
       }
 
-      s ++= " " + "\"" + n.show() + "\"" + nodeColor + "\n"
+      s ++= " " + "\"" + n.show() + "\"" + " " + nodeColor + "\n"
     }
+    s  ++= "\n"
 
-    var edgeNodes = svg.graph.edges.toOuter
+//    for (n <- svg.nodes) {
+//      val adjacencyList = svg.getAdjacentNodes(n).get
+//      val edges = adjacencyList.map(next => "\"" + n.show() + "\"" + " -> " + "\"" + next.show() + "\"")
+//      for (e <- edges) {
+//        s ++= " " + e + "\n"
+//      }
+//    }
 
-    for (i <- edgeNodes) {
-      var x = i.value.label
-      var cd = new StringLabel("TrueEdge")
-      var cdFalse = new StringLabel("FalseEdge")
-      if (x.isInstanceOf[StringLabel]) {
 
-        var auxStr = ""
-        var cont = 0
-        for (auxNode <- i){
-          if (cont == 0){
-            auxStr += "\""+auxNode.show();
-          }else{
-            auxStr +=  "\"" + " -> " + "\"" + auxNode.show()+ "\"";
-          }
-          cont += +1
+    for (e <- svg.edges) {
+      val edge = "\"" + e.from.show() + "\"" + " -> " + "\"" + e.to.show() + "\""
+
+      val label: String = e.label match {
+        case c: CallSiteLabel =>  {
+          if (c.labelType == CallSiteOpenLabel) { "[label=\"cs(\"]" }
+          else { "[label=\"cs)\"]" }
         }
-
-        var cdEdge = (cd.asInstanceOf[StringLabel]).edgeType.toString
-        var cdEdgeFalse = (cdFalse.asInstanceOf[StringLabel]).edgeType.toString
-        var a = (x.asInstanceOf[StringLabel]).edgeType.toString
-        if (a.equals(cdEdge)) { //If is Control Dependence Edge
-          s ++= " "+auxStr + "[penwidth=3][label=\"T\"]" + "\n"
-        } else if (a.equals(cdEdgeFalse)) {
-          s ++= " "+auxStr + "[penwidth=3][label=\"F\"]" + "\n"
-        } else{
-          s ++= " "+auxStr + "\n"
-        }
-      }
-    }
-
-
-    /*      for(n <- svg.nodes) {
-             val adjacencyList = svg.getAdjacentNodes(n).get
-             val edges = adjacencyList.map(next => +"\"" + n.show() + "\"" + " -> " + "\"" + next.show() + "\"")
-
-             for(e <- adjacencyList) {
-                s ++= " " + e + "\n"
-             }
-          }
-    */
-
-    s ++= "}"
-
-    return s.toString()
-  }
-
-
-  def cdToDotModel(): String = {
-    val s = new StringBuilder
-    var nodeColor = ""
-    s ++= "digraph { \n"
-
-    for(n <- cd.nodes) {
-      nodeColor = n.nodeType match  {
-        case SourceNode => "[fillcolor=blue, style=filled]"
-        case SinkNode   => "[fillcolor=red, style=filled]"
-        case _          => ""
+        case _ => ""
       }
 
-      s ++= " " + "\"" + n.show() + "\"" + nodeColor + "\n"
-    }
-
-    var edgeNodes = cd.graph.edges.toOuter
-
-    for (i <- edgeNodes) {
-      var x = i.value.label
-      var cd = new StringLabel("TrueEdge")
-      var cdFalse = new StringLabel("FalseEdge")
-      if (x.isInstanceOf[StringLabel]) {
-
-        var auxStr = ""
-        var cont = 0
-        for (auxNode <- i){
-          if (cont == 0){
-            auxStr += "\""+auxNode.show();
-          }else{
-            auxStr +=  "\"" + " -> " + "\"" + auxNode.show()+ "\"";
-          }
-          cont += +1
-        }
-
-        var cdEdge = (cd.asInstanceOf[StringLabel]).edgeType.toString
-        var cdEdgeFalse = (cdFalse.asInstanceOf[StringLabel]).edgeType.toString
-        var a = (x.asInstanceOf[StringLabel]).edgeType.toString
-        if (a.equals(cdEdge)) { //If is Control Dependence Edge
-          s ++= " "+auxStr + "[penwidth=3][label=\"T\"]" + "\n"
-        } else if (a.equals(cdEdgeFalse)) {
-          s ++= " "+auxStr + "[penwidth=3][label=\"F\"]" + "\n"
-        } else{
-          s ++= " "+auxStr + "\n"
-        }
-      }
-    }
-
-    s ++= "}"
-
-    return s.toString()
-  }
-
-
-  def svgcdToDotModel(): String = {
-    val s = new StringBuilder
-    var nodeColor = ""
-    s ++= "digraph { \n"
-
-    for(n <- svgcd.nodes) {
-      nodeColor = n.nodeType match  {
-        case SourceNode => "[fillcolor=blue, style=filled]"
-        case SinkNode   => "[fillcolor=red, style=filled]"
-        case _          => ""
-      }
-
-      s ++= " " + "\"" + n.show() + "\"" + nodeColor + "\n"
-    }
-
-    var edgeNodes = svgcd.graph.edges.toOuter
-
-    for (i <- edgeNodes) {
-      var x = i.value.label
-      var cd = new StringLabel("TrueEdge")
-      var cdFalse = new StringLabel("FalseEdge")
-      if (x.isInstanceOf[StringLabel]) {
-
-        var auxStr = ""
-        var cont = 0
-        for (auxNode <- i){
-          if (cont == 0){
-            auxStr += "\""+auxNode.show();
-          }else{
-            auxStr +=  "\"" + " -> " + "\"" + auxNode.show()+ "\"";
-          }
-          cont += +1
-        }
-
-        var cdEdge = (cd.asInstanceOf[StringLabel]).edgeType.toString
-        var cdEdgeFalse = (cdFalse.asInstanceOf[StringLabel]).edgeType.toString
-        var a = (x.asInstanceOf[StringLabel]).edgeType.toString
-        if (a.equals(cdEdge)) { //If is Control Dependence Edge
-          s ++= " "+auxStr + "[penwidth=3][label=\"T\"]" + "\n"
-        } else if (a.equals(cdEdgeFalse)) {
-          s ++= " "+auxStr + "[penwidth=3][label=\"F\"]" + "\n"
-        } else{
-          s ++= " "+auxStr + "\n"
-        }
-      }
+      s ++= " " + edge + " " + label + "\n"
     }
 
     s ++= "}"

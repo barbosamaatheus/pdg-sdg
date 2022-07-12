@@ -45,7 +45,7 @@ class AliasingTestSuite extends FunSuite {
     val svfa = new AliasingTest("securibench.micro.aliasing.Aliasing2", "doGet")
     svfa.buildSparseValueFlowGraph()
     assert(svfa.reportConflicts().size == 0)
- }
+  }
 
   test("in the class Aliasing3 we should not detect any conflict, but in Flowdroid this test case was not conclusive") {
     val svfa = new AliasingTest("securibench.micro.aliasing.Aliasing3", "doGet")
