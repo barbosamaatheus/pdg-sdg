@@ -17,7 +17,7 @@ public class SlideSample {
     }
 
     private void removeDuplicatedWords() {
-        text = text;
+        text = text.replace("aa", "");
     }
 
     private boolean hasWhiteSpace() {
@@ -25,6 +25,6 @@ public class SlideSample {
     }
 
     private void normalizeWhiteSpaces() {
-        text = text;
+        text = text.replace("  ", " ");
     }
 }
