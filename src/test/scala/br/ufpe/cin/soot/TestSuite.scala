@@ -122,7 +122,7 @@ class TestSuite extends FunSuite with BeforeAndAfter {
   }
 
   test("we should correctly compute the number of nodes and edges in the PDGSlide sample") {
-    val pdg = new PDGTestSlide( Array (9), Array (11))
+    val pdg = new PDGTestSlide( Array (13), Array (15))
     pdg.buildPDG()
     println(pdg.pdgToDotModel())
 
@@ -130,11 +130,27 @@ class TestSuite extends FunSuite with BeforeAndAfter {
   }
 
   test("we should correctly compute the number of nodes and edges in the CDSlide sample") {
-    val cd = new CDTestSlide( Array (9), Array (11))
+    val cd = new CDTestSlide( Array (13), Array (15))
     cd.buildCD()
     println(cd.cdToDotModel())
 
     assert(cd.reportConflictsCD().size >= 1)
+  }
+
+  test("we should correctly compute the number of nodes and edges in the DFPSlide SlideSample1") {
+    val dfp = new DFPTestSlide1( Array (16, 23), Array (18, 19, 27))
+    dfp.buildSparseValueFlowGraph()
+    println(dfp.svgToDotModel())
+
+//    assert(dfp.reportConflicts().size >= 1)
+  }
+
+  test("we should correctly compute the number of nodes and edges in the DFPSlide SlideSample2") {
+    val dfp = new DFPTestSlide2( Array (13), Array (15))
+    dfp.buildSparseValueFlowGraph()
+    println(dfp.svgToDotModel())
+
+    //    assert(dfp.reportConflicts().size >= 1)
   }
 
   test("we should not find any conflict in the BlackBoardTest sample") {

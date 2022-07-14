@@ -4,8 +4,8 @@ import br.ufpe.cin.soot.graph.{NodeType, SimpleNode, SinkNode, SourceNode}
 import br.ufpe.cin.soot.svfa.jimple.PropagateTaint
 import soot.jimple.{AssignStmt, InvokeExpr, InvokeStmt}
 
-class CDTestSlide(leftchangedlines: Array[Int], rightchangedlines: Array[Int]) extends CDTest  with PropagateTaint{
-  override def getClassName(): String = "samples.SlideSample"
+class DFPTestSlide2(leftchangedlines: Array[Int], rightchangedlines: Array[Int]) extends JSVFATest  with PropagateTaint{
+  override def getClassName(): String = "samples.SlideSample2"
   override def getMainMethod(): String = "cleanText"
 
   def this(){

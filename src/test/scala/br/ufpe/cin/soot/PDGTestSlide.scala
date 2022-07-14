@@ -6,7 +6,7 @@ import soot.jimple.{AssignStmt, InvokeExpr, InvokeStmt}
 
 class PDGTestSlide(leftchangedlines: Array[Int], rightchangedlines: Array[Int]) extends JPDGTest  with PropagateTaint{
   override def getClassName(): String = "samples.SlideSample"
-  override def getMainMethod(): String = "main"
+  override def getMainMethod(): String = "cleanText"
 
   def this(){
     this(Array.empty[Int], Array.empty[Int])

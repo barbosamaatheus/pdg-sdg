@@ -1,27 +1,26 @@
 package samples;
 
-public class SlideSample {
+public class SlideSample2 {
     public String text;
 
     public static void main(){
-        SlideSample inst = new SlideSample();
+        SlideSample2 inst = new SlideSample2();
 
         inst.cleanText();
     }
 
     public void cleanText() {
-        if (text != null && hasWhiteSpace()){ //Left
-            normalizeWhiteSpaces();
-            removeDuplicatedWords(); //Right
-        }
+        normalizeWhiteSpaces(); //Left
+        removeComments();
+        removeDuplicatedWords(); //Right
     }
 
     private void removeDuplicatedWords() {
         text = text;
     }
 
-    private boolean hasWhiteSpace() {
-        return text.contains(" ");
+    private void removeComments() {
+        text = text;
     }
 
     private void normalizeWhiteSpaces() {
