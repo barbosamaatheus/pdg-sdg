@@ -167,12 +167,6 @@ abstract class JSVFA extends SVFA with Analysis with FieldSensitiveness with Obj
 
   def createSceneTransform(): (String, Transform) = ("wjtp", new Transform("wjtp.svfa", new Transformer()))
 
-  def configurePackages(): List[String] = List("cg", "wjtp")
-
-  def beforeGraphConstruction(): Unit = { }
-
-  def afterGraphConstruction() { }
-
   def initAllocationSites(): Unit = {
     val listener = Scene.v().getReachableMethods.listener()
 
@@ -339,7 +333,7 @@ abstract class JSVFA extends SVFA with Analysis with FieldSensitiveness with Obj
      * In this case, we create an edge from defs(q)
      * to the statement p = q.
      */
-  private def copyRule(targetStmt: soot.Unit, local: Local, method: SootMethod, defs: SimpleLocalDefs) = {
+  protected def copyRule(targetStmt: soot.Unit, local: Local, method: SootMethod, defs: SimpleLocalDefs) = {
     defs.getDefsOfAt(local, targetStmt).forEach(sourceStmt => {
       val source = createNode(method, sourceStmt)
       val target = createNode(method, targetStmt)
@@ -369,7 +363,7 @@ abstract class JSVFA extends SVFA with Analysis with FieldSensitiveness with Obj
    *
    *  (*) p = q.f
    */
-  private def loadRule(stmt: soot.Unit, ref: InstanceFieldRef, method: SootMethod, defs: SimpleLocalDefs) : Unit = {
+  protected def loadRule(stmt: soot.Unit, ref: InstanceFieldRef, method: SootMethod, defs: SimpleLocalDefs) : Unit = {
     val base = ref.getBase
     // value field of a string.
     val className = ref.getFieldRef.declaringClass().getName
@@ -415,7 +409,7 @@ abstract class JSVFA extends SVFA with Analysis with FieldSensitiveness with Obj
     }
   }
 
-  private def loadArrayRule(targetStmt: soot.Unit, ref: ArrayRef, method: SootMethod, defs: SimpleLocalDefs) : Unit = {
+  protected def loadArrayRule(targetStmt: soot.Unit, ref: ArrayRef, method: SootMethod, defs: SimpleLocalDefs) : Unit = {
     val base = ref.getBase
 
     if(base.isInstanceOf[Local]) {

@@ -1,7 +1,7 @@
 package br.ufpe.cin.soot.svfa.jimple
 
 import br.ufpe.cin.soot.graph._
-import br.ufpe.cin.soot.svfa.SourceSinkDef
+import br.ufpe.cin.soot.svfa.{SootConfiguration, SourceSinkDef}
 import soot.jimple._
 import soot.toolkits.graph.MHGPostDominatorsFinder
 import soot.{PackManager, Scene, SceneTransformer, SootMethod, Transform}
@@ -13,7 +13,7 @@ import java.util
  * A Jimple based implementation of
  * Control Dependence Analysis.
  */
-trait JCD extends SootConfiguration with SourceSinkDef {
+trait JCD extends SootConfiguration with Interprocedural with FieldSenstive with SourceSinkDef {
 
   var cd = new br.ufpe.cin.soot.graph.Graph()
   val traversedMethodsCD = scala.collection.mutable.Set.empty[SootMethod]
@@ -24,14 +24,16 @@ trait JCD extends SootConfiguration with SourceSinkDef {
     configureSoot()
 
     beforeGraphConstruction()
-    val (pack2, t2) = createSceneTransformCD()
+    val (pack2, t2) = createSceneTransform()
     PackManager.v().getPack(pack2).add(t2)
     configurePackages().foreach(p => PackManager.v().getPack(p).apply())
 
     afterGraphConstruction()
   }
 
-  def createSceneTransformCD(): (String, Transform) = ("wjtp", new Transform("wjtp.cd", new TransformerCD()))
+  override def configurePackages(): List[String] = ???
+
+  override def createSceneTransform(): (String, Transform) = ("wjtp", new Transform("wjtp.cd", new TransformerCD()))
 
   class TransformerCD extends SceneTransformer {
     override def internalTransform(phaseName: String, options: util.Map[String, String]): Unit = {

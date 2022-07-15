@@ -3,7 +3,7 @@ package br.ufpe.cin.soot
 import br.ufpe.cin.soot.svfa.jimple.{FieldSenstive, Interprocedural, JDFP}
 import soot.{Scene, SootMethod}
 
-abstract class JDFPTest extends JDFP with Interprocedural with FieldSenstive {
+abstract class JDFPTest extends JDFP  {
   def getClassName(): String
   def getMainMethod(): String
 

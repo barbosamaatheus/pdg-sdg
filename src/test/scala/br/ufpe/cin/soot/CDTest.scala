@@ -3,7 +3,7 @@ package br.ufpe.cin.soot
 import br.ufpe.cin.soot.graph._
 import br.ufpe.cin.soot.svfa.jimple.PropagateTaint
 
-class CDTest(leftchangedlines: Array[Int] , rightchangedlines: Array[Int]) extends JCDTest  with PropagateTaint{
+class CDTest(leftchangedlines: Array[Int] , rightchangedlines: Array[Int]) extends JCDTest {
   override def getClassName(): String = "samples.BlackBoard"
   override def getMainMethod(): String = "main"
 
@@ -20,8 +20,7 @@ class CDTest(leftchangedlines: Array[Int] , rightchangedlines: Array[Int]) exten
         return SinkNode
       }
     }
-
-    return SimpleNode
+    SimpleNode
   }
 
 }

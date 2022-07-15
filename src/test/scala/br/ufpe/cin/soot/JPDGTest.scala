@@ -3,7 +3,7 @@ package br.ufpe.cin.soot
 import br.ufpe.cin.soot.svfa.jimple.{FieldSenstive, Interprocedural, JPDG}
 import soot.{Scene, SootMethod}
 
-abstract class JPDGTest extends JPDG with Interprocedural with FieldSenstive {
+abstract class JPDGTest extends JPDG  {
   def getClassName(): String
   def getMainMethod(): String
 

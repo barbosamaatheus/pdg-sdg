@@ -1,7 +1,7 @@
 package br.ufpe.cin.soot.svfa.jimple
 
 import br.ufpe.cin.soot.graph.{CallSiteLabel, CallSiteOpenLabel, DefLabel, DefLabelType, EdgeLabel, FalseLabelType, Graph, GraphNode, SinkNode, SourceNode, StatementNode, TrueLabelType}
-import br.ufpe.cin.soot.svfa.SourceSinkDef
+import br.ufpe.cin.soot.svfa.{SootConfiguration, SourceSinkDef}
 import soot.jimple._
 import soot.options.Options
 import soot.toolkits.graph.ExceptionalBlockGraph
@@ -21,7 +21,7 @@ abstract class JPDG extends SootConfiguration with SourceSinkDef  {
   var svg: Graph = _
   var pdg = new Graph()
   var hashSetUnit = new util.HashSet[(StatementNode, StatementNode, EdgeLabel)]
-  var methods: Integer
+  var methods: Integer = _
 
 
   def buildPDG(jcd: JCD, jdfp: JDFP) {
@@ -36,7 +36,7 @@ abstract class JPDG extends SootConfiguration with SourceSinkDef  {
 
     Options.v().setPhaseOption("jb", "use-original-names:true")
 
-    val (pack, t) = createSceneTransformPDG()
+    val (pack, t) = createSceneTransform()
     PackManager.v().getPack(pack).add(t)
     configurePackages().foreach(p => PackManager.v().getPack(p).apply())
 
@@ -93,7 +93,7 @@ abstract class JPDG extends SootConfiguration with SourceSinkDef  {
     return null
   }
 
-  def createSceneTransformPDG(): (String, Transform) = ("wjtp", new Transform("wjtp.pdg", new TransformerPDG()))
+  override def createSceneTransform(): (String, Transform) = ("wjtp", new Transform("wjtp.pdg", new TransformerPDG()))
 
   class TransformerPDG extends SceneTransformer {
     override def internalTransform(phaseName: String, options: util.Map[String, String]): scala.Unit = {
@@ -197,5 +197,13 @@ abstract class JPDG extends SootConfiguration with SourceSinkDef  {
   def createDefEdgeLabel(source: soot.Unit, target: soot.Unit, method: SootMethod): DefLabelType = {
     val statement = br.ufpe.cin.soot.graph.Statement(method.getDeclaringClass.toString, method.getSignature, source.toString, source.getJavaSourceStartLineNumber)
     DefLabelType(DefLabel)
+  }
+
+  def pdgToDotModel(): String = {
+    pdg.toDotModel()
+  }
+
+  def reportConflictsPDG() = {
+    pdg.reportConflicts()
   }
 }

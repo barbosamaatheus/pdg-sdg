@@ -134,50 +134,50 @@ trait JDFP extends JSVFA with FieldSenstive with Interprocedural with PropagateT
     })
   }
 
-  def copyRule(targetStmt: soot.Unit, local: Local, method: SootMethod, defs: SimpleLocalDefs) = {
-    defs.getDefsOfAt(local, targetStmt).forEach(sourceStmt => {
-      val source = createNode(method, sourceStmt)
-      val target = createNode(method, targetStmt)
-      updateGraph(source, target)
-    })
-  }
+//  def copyRule(targetStmt: soot.Unit, local: Local, method: SootMethod, defs: SimpleLocalDefs) = {
+//    defs.getDefsOfAt(local, targetStmt).forEach(sourceStmt => {
+//      val source = createNode(method, sourceStmt)
+//      val target = createNode(method, targetStmt)
+//      updateGraph(source, target)
+//    })
+//  }
 
-  def loadRule(stmt: soot.Unit, ref: InstanceFieldRef, method: SootMethod, defs: SimpleLocalDefs) : scala.Unit =
-  {
-    val base = ref.getBase
-    // value field of a string.
-    val className = ref.getFieldRef.declaringClass().getName
-    if ((className == "java.lang.String") && ref.getFieldRef.name == "value") {
-      if (base.isInstanceOf[Local]) {
-        defs.getDefsOfAt(base.asInstanceOf[Local], stmt).forEach(source => {
-          val sourceNode = createNode(method, source)
-          val targetNode = createNode(method, stmt)
-          updateGraph(sourceNode, targetNode)
-        })
-      }
-      return;
-    }
-  }
+//  def loadRule(stmt: soot.Unit, ref: InstanceFieldRef, method: SootMethod, defs: SimpleLocalDefs) : scala.Unit =
+//  {
+//    val base = ref.getBase
+//    // value field of a string.
+//    val className = ref.getFieldRef.declaringClass().getName
+//    if ((className == "java.lang.String") && ref.getFieldRef.name == "value") {
+//      if (base.isInstanceOf[Local]) {
+//        defs.getDefsOfAt(base.asInstanceOf[Local], stmt).forEach(source => {
+//          val sourceNode = createNode(method, source)
+//          val targetNode = createNode(method, stmt)
+//          updateGraph(sourceNode, targetNode)
+//        })
+//      }
+//      return;
+//    }
+//  }
 
-  def loadArrayRule(targetStmt: soot.Unit, ref: ArrayRef, method: SootMethod, defs: SimpleLocalDefs) : scala.Unit = {
-    val base = ref.getBase
-
-    if(base.isInstanceOf[Local]) {
-      val local = base.asInstanceOf[Local]
-
-      defs.getDefsOfAt(local, targetStmt).forEach(sourceStmt => {
-        val source = createNode(method, sourceStmt)
-        val target = createNode(method, targetStmt)
-        updateGraph(source, target)
-      })
-
-      val stores = arrayStores.getOrElseUpdate(local, List())
-      stores.foreach(sourceStmt => {
-        val source = createNode(method, sourceStmt)
-        val target = createNode(method, targetStmt)
-        updateGraph(source, target)
-      })
-    }
-  }
+//  def loadArrayRule(targetStmt: soot.Unit, ref: ArrayRef, method: SootMethod, defs: SimpleLocalDefs) : scala.Unit = {
+//    val base = ref.getBase
+//
+//    if(base.isInstanceOf[Local]) {
+//      val local = base.asInstanceOf[Local]
+//
+//      defs.getDefsOfAt(local, targetStmt).forEach(sourceStmt => {
+//        val source = createNode(method, sourceStmt)
+//        val target = createNode(method, targetStmt)
+//        updateGraph(source, target)
+//      })
+//
+//      val stores = arrayStores.getOrElseUpdate(local, List())
+//      stores.foreach(sourceStmt => {
+//        val source = createNode(method, sourceStmt)
+//        val target = createNode(method, targetStmt)
+//        updateGraph(source, target)
+//      })
+//    }
+//  }
 
 }

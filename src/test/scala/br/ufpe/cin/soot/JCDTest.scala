@@ -3,7 +3,7 @@ package br.ufpe.cin.soot
 import br.ufpe.cin.soot.svfa.jimple.{FieldSenstive, Interprocedural, JCD}
 import soot.{Scene, SootMethod}
 
-abstract class JCDTest extends JCD with Interprocedural with FieldSenstive {
+abstract class JCDTest extends JCD  {
   def getClassName(): String
   def getMainMethod(): String
 
