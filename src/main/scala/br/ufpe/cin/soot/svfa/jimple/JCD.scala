@@ -15,7 +15,6 @@ import java.util
  */
 trait JCD extends SootConfiguration with SourceSinkDef {
 
-  val allocationSitesCD = scala.collection.mutable.HashMap.empty[soot.Value, soot.Unit]
   var cd = new br.ufpe.cin.soot.graph.Graph()
   val traversedMethodsCD = scala.collection.mutable.Set.empty[SootMethod]
   var methods = 0
@@ -31,36 +30,16 @@ trait JCD extends SootConfiguration with SourceSinkDef {
 
     afterGraphConstruction()
   }
+
   def createSceneTransformCD(): (String, Transform) = ("wjtp", new Transform("wjtp.cd", new TransformerCD()))
 
   class TransformerCD extends SceneTransformer {
     override def internalTransform(phaseName: String, options: util.Map[String, String]): Unit = {
       pointsToAnalysis = Scene.v().getPointsToAnalysis
-      initAllocationSitesCD()
       Scene.v().getEntryPoints.forEach(method => {
         traverseCD(method)
         methods = methods + 1
       })
-    }
-  }
-
-  def initAllocationSitesCD(): Unit = {
-    val listener = Scene.v().getReachableMethods.listener()
-
-    while(listener.hasNext) {
-      val m = listener.next().method()
-      if (m.hasActiveBody) {
-        val body = m.getActiveBody
-        body.getUnits.forEach(unit => {
-          if (unit.isInstanceOf[soot.jimple.AssignStmt]) {
-            val right = unit.asInstanceOf[soot.jimple.AssignStmt].getRightOp
-            if (right.isInstanceOf[NewExpr] || right.isInstanceOf[NewArrayExpr]) {// || right.isInstanceOf[StringConstant]) {
-              //            if (right.isInstanceOf[NewExpr] || right.isInstanceOf[NewArrayExpr] || right.isInstanceOf[StringConstant]) {
-              allocationSitesCD += (right -> unit)
-            }
-          }
-        })
-      }
     }
   }
 
@@ -234,64 +213,6 @@ trait JCD extends SootConfiguration with SourceSinkDef {
   def createNodeCD(method: SootMethod, stmt: soot.Unit): StatementNode =
     StatementNode(br.ufpe.cin.soot.graph.Statement(method.getDeclaringClass.toString, method.getSignature, stmt.toString, stmt.getJavaSourceStartLineNumber), analyze(stmt))
 
-  def reportConflictsCD(): scala.collection.Set[String] =
-    findConflictingPathsCD().map(p => p.toString)
 
-
-  def findConflictingPathsCD(): scala.collection.Set[List[GraphNode]] = {
-    if (cd.fullGraph) {
-      val conflicts = cd.findPathsFullGraph()
-      return conflicts.toSet
-    } else {
-      val sourceNodes = cd.nodes.filter(n => n.nodeType == SourceNode)
-      val sinkNodes = cd.nodes.filter(n => n.nodeType == SinkNode)
-
-      var conflicts: List[List[GraphNode]] = List()
-      sourceNodes.foreach(source => {
-        sinkNodes.foreach(sink => {
-          val paths = cd.findPath(source, sink)
-          conflicts = conflicts ++ paths
-        })
-      })
-
-      conflicts.filter(p => p.nonEmpty).toSet
-    }
-  }
-
-  def cdToDotModel(): String = {
-    val s = new StringBuilder
-    var nodeColor = ""
-    s ++= "digraph { \n"
-
-    for(n <- cd.nodes) {
-      nodeColor = n.nodeType match  {
-        case SourceNode => "[fillcolor=blue, style=filled]"
-        case SinkNode   => "[fillcolor=red, style=filled]"
-        case _          => ""
-      }
-
-      s ++= " " + "\"" + n.show() + "\"" + nodeColor + "\n"
-    }
-
-    s  ++= "\n"
-
-    for (e <- cd.edges) {
-      val edge = "\"" + e.from.show() + "\"" + " -> " + "\"" + e.to.show() + "\""
-      var l = e.label
-      val label: String = e.label match {
-        case c: CallSiteLabel =>  {
-          if (c.labelType == CallSiteOpenLabel) { "[label=\"cs(\"]" }
-          else { "[label=\"cs)\"]" }
-        }
-        case c: TrueLabelType =>{ "[penwidth=3][label=\"T\"]" }
-        case c: FalseLabelType => { "[penwidth=3][label=\"F\"]" }
-        case c: DefLabelType => { "[style=dashed, color=black]" }
-        case _ => ""
-      }
-      s ++= " " + edge + " " + label + "\n"
-    }
-    s ++= "}"
-    return s.toString()
-  }
 
 }

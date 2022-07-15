@@ -17,9 +17,8 @@ import java.util
  * A Jimple based implementation of
  * Control Dependence Analysis.
  */
-trait JDFP extends JSVFA {
+trait JDFP extends JSVFA with FieldSenstive with Interprocedural with PropagateTaint {
 
-  val allocationSitesDFP = scala.collection.mutable.HashMap.empty[soot.Value, soot.Unit]
   val traversedMethodsDF = scala.collection.mutable.Set.empty[SootMethod]
 
   def buildDFP() { //Excluir
@@ -45,7 +44,6 @@ trait JDFP extends JSVFA {
   class TransformerDFP extends SceneTransformer {
     override def internalTransform(phaseName: String, options: util.Map[String, String]): scala.Unit = {
       pointsToAnalysis = Scene.v().getPointsToAnalysis
-      initAllocationSitesDFP()
       Scene.v().getEntryPoints.forEach(method => {
         traverseDFP(method)
         methods = methods + 1
@@ -53,25 +51,7 @@ trait JDFP extends JSVFA {
     }
   }
 
-  def initAllocationSitesDFP(): scala.Unit = {
-    val listener = Scene.v().getReachableMethods.listener()
 
-    while(listener.hasNext) {
-      val m = listener.next().method()
-      if (m.hasActiveBody) {
-        val body = m.getActiveBody
-        body.getUnits.forEach(unit => {
-          if (unit.isInstanceOf[soot.jimple.AssignStmt]) {
-            val right = unit.asInstanceOf[soot.jimple.AssignStmt].getRightOp
-            if (right.isInstanceOf[NewExpr] || right.isInstanceOf[NewArrayExpr]) {// || right.isInstanceOf[StringConstant]) {
-              //            if (right.isInstanceOf[NewExpr] || right.isInstanceOf[NewArrayExpr] || right.isInstanceOf[StringConstant]) {
-              allocationSitesDFP += (right -> unit)
-            }
-          }
-        })
-      }
-    }
-  }
 
   def traverseDFP(method: SootMethod, forceNewTraversal: Boolean = false) : scala.Unit = {
     if((!forceNewTraversal) && (method.isPhantom || traversedMethodsDF.contains(method))) {
