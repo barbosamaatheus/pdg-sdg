@@ -29,13 +29,20 @@ class TestSuite extends FunSuite with BeforeAndAfter {
 
   ignore("PDG BlackBoardTest sample") {
     val pdg = new PDGTest( Array (7), Array (14))
-    pdg.buildPDG()
+    val svfa = new DFPTest( Array (7), Array (14))
+    val cd = new CDTest( Array (7), Array (14))
+
+    pdg.buildPDG(svfa, cd)
+
     println(pdg.pdgToDotModel())
   }
 
   test("we should correctly compute the number of nodes and edges in the PDG1 sample") {
     val pdg = new PDG1Test( Array (7), Array (10))
-    pdg.buildPDG()
+    val svfa = new DFPTest( Array (7), Array (10))
+    val cd = new CDTest( Array (7), Array (10))
+
+    pdg.buildPDG(svfa, cd)
 
     println(pdg.pdgToDotModel())
 
@@ -46,7 +53,10 @@ class TestSuite extends FunSuite with BeforeAndAfter {
 
   test("we should correctly compute the number of nodes, edges and one conflict (CD) in the PDG1 sample") {
     val pdg = new PDG1Test( Array (7), Array (9))
-    pdg.buildPDG()
+    val svfa = new DFPTest( Array (7), Array (9))
+    val cd = new CDTest( Array (7), Array (9))
+
+    pdg.buildPDG(svfa, cd)
 
     println(pdg.pdgToDotModel())
     assert(pdg.reportConflictsPDG().size == 1)
@@ -54,7 +64,11 @@ class TestSuite extends FunSuite with BeforeAndAfter {
 
   test("we should correctly compute the number of nodes and edges in the PDG2 sample") {
     val pdg = new PDG2Test( Array (6), Array (12))
-    pdg.buildPDG()
+    val svfa = new DFPTest( Array (6), Array (12))
+    val cd = new CDTest( Array (6), Array (12))
+
+    pdg.buildPDG(svfa, cd)
+
 
     println(pdg.pdgToDotModel())
 
@@ -65,7 +79,10 @@ class TestSuite extends FunSuite with BeforeAndAfter {
 
   test("we should correctly compute the number of nodes and edges in the PDG3 sample") {
     val pdg = new PDG3Test( Array (10), Array (12))
-    pdg.buildPDG()
+    val svfa = new DFPTest( Array (10), Array (12))
+    val cd = new CDTest( Array (10), Array (12))
+
+    pdg.buildPDG(svfa, cd)
 
     println(pdg.pdgToDotModel())
 
@@ -76,7 +93,11 @@ class TestSuite extends FunSuite with BeforeAndAfter {
 
   test("we should correctly compute the number of nodes and edges in the PDG4 sample") {
     val pdg = new PDG4Test( Array (5), Array (10))
-    pdg.buildPDG()
+    val svfa = new DFPTest( Array (5), Array (10))
+    val cd = new CDTest( Array (5), Array (10))
+
+    pdg.buildPDG(svfa, cd)
+
 
     println(pdg.pdgToDotModel())
 
@@ -87,7 +108,11 @@ class TestSuite extends FunSuite with BeforeAndAfter {
 
   test("we should correctly compute the number of nodes and edges in the PDG5 sample") {
     val pdg = new PDG5Test( Array (10), Array (9))
-    pdg.buildPDG()
+    val svfa = new DFPTest( Array (10), Array (9))
+    val cd = new CDTest( Array (10), Array (9))
+
+    pdg.buildPDG(svfa, cd)
+
     println(pdg.pdgToDotModel())
 
     assert(pdg.pdg.nodes.size == 8)
@@ -97,7 +122,11 @@ class TestSuite extends FunSuite with BeforeAndAfter {
 
   test("we should correctly compute the number of nodes and edges in the PDG6 sample") {
     val pdg = new PDG6Test( Array (9), Array (10))
-    pdg.buildPDG()
+    val svfa = new DFPTest( Array (9), Array (10))
+    val cd = new CDTest( Array (9), Array (10))
+
+    pdg.buildPDG(svfa, cd)
+
     println(pdg.pdgToDotModel())
 
     assert(pdg.pdg.nodes.size == 8)
@@ -107,13 +136,21 @@ class TestSuite extends FunSuite with BeforeAndAfter {
 
   test("we should correctly compute the number of nodes, edges and one conflict in the PDG6 sample") {
     val pdg = new PDG6Test( Array (7), Array (10))
-    pdg.buildPDG()
+    val svfa = new DFPTest( Array (7), Array (10))
+    val cd = new CDTest( Array (7), Array (10))
+
+    pdg.buildPDG(svfa, cd)
+
     assert(pdg.reportConflictsPDG().size == 1)
   }
 
   test("we should correctly compute the number of nodes and edges in the PDG7 sample") {
     val pdg = new PDG7Test( Array (6, 7), Array (9, 11))
-    pdg.buildPDG()
+    val svfa = new DFPTest( Array (6, 7), Array (9, 11))
+    val cd = new CDTest( Array (6, 7), Array (9, 11))
+
+    pdg.buildPDG(svfa, cd)
+
     println(pdg.pdgToDotModel())
 
     assert(pdg.pdg.nodes.size == 8)
@@ -123,7 +160,11 @@ class TestSuite extends FunSuite with BeforeAndAfter {
 
   test("we should correctly compute the number of nodes and edges in the PDGSlide sample") {
     val pdg = new PDGTestSlide( Array (9), Array (11))
-    pdg.buildPDG()
+    val svfa = new DFPTest( Array (9), Array (11))
+    val cd = new CDTest( Array (9), Array (11))
+
+    pdg.buildPDG(svfa, cd)
+
     println(pdg.pdgToDotModel())
 
     assert(pdg.reportConflictsPDG().size >= 1)

@@ -23,6 +23,7 @@ trait JDFP extends JSVFA {
   val traversedMethodsDF = scala.collection.mutable.Set.empty[SootMethod]
 
   def buildDFP() { //Excluir
+    svg.enable
     buildSparseValueFlowGraph()
   }
 

@@ -151,6 +151,11 @@ class Graph() {
   var fullGraph: Boolean = false
   var allPaths: Boolean = false
   var optimizeGraph: Boolean = false
+  var permitedReturnEdge: Boolean = false
+
+  def enableReturnEdge(): Unit = {
+    permitedReturnEdge = true
+  }
 
   def gNode(outerNode: GraphNode): graph.NodeT = graph.get(outerNode)
   def gEdge(outerEdge: LkDiEdge[GraphNode]): graph.EdgeT = graph.get(outerEdge)
@@ -166,7 +171,7 @@ class Graph() {
     addEdge(source, target, StringLabel("Normal"))
 
   def addEdge(source: GraphNode, target: GraphNode, label: EdgeLabel): Unit = {
-    if(source == target) {
+    if(source == target && !permitedReturnEdge) {
       return
     }
 

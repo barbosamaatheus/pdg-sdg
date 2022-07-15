@@ -7,6 +7,11 @@ class CDTest(leftchangedlines: Array[Int] , rightchangedlines: Array[Int]) exten
   override def getClassName(): String = "samples.BlackBoard"
   override def getMainMethod(): String = "main"
 
+  def afterGraphConstruction()
+  def beforeGraphConstruction()
+  def configurePackages(): List[String]
+  def createSceneTransform(): (String, soot.Transform)
+
   def this(){
     this(Array.empty[Int], Array.empty[Int])
   }

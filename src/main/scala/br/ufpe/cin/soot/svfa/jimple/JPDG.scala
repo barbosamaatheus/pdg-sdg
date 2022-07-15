@@ -1,10 +1,12 @@
 package br.ufpe.cin.soot.svfa.jimple
 
 import br.ufpe.cin.soot.graph.{CallSiteLabel, CallSiteOpenLabel, DefLabel, DefLabelType, EdgeLabel, FalseLabelType, GraphNode, SinkNode, SourceNode, StatementNode, TrueLabelType}
+import br.ufpe.cin.soot.svfa.SourceSinkDef
 import soot.jimple._
 import soot.options.Options
-import soot.toolkits.graph.{ExceptionalBlockGraph}
+import soot.toolkits.graph.ExceptionalBlockGraph
 import soot.{PackManager, Scene, SceneTransformer, SootMethod, Transform}
+
 import java.util
 
 
@@ -12,18 +14,27 @@ import java.util
  * A Jimple based implementation of
  * Control Dependence Analysis.
  */
-abstract class JPDG extends JCD with JDFP   {
+abstract class JPDG extends SootConfiguration  with SourceSinkDef {
 
   val allocationSitesPDG = scala.collection.mutable.HashMap.empty[soot.Value, soot.Unit]
   val traversedMethodsPDG = scala.collection.mutable.Set.empty[SootMethod]
   var listDef : List[(AssignStmt, StatementNode, Int)] = List()
   var pdg = new br.ufpe.cin.soot.graph.Graph()
   var hashSetUnit = new util.HashSet[(StatementNode, StatementNode, EdgeLabel)]
+  var svg = new br.ufpe.cin.soot.graph.Graph()
+  var cd = new br.ufpe.cin.soot.graph.Graph()
+  var methods = 0
+  def runInFullSparsenessMode() = true
 
-  def buildPDG() {
+  def buildPDG(svfa: JDFP, cda: JCD) {
 
-    buildDFP() //svg
-    buildCD()  //cd
+    svfa.svg.enableReturnEdge()
+
+    svfa.buildDFP() //svg
+    cda.buildCD()  //cd
+
+    svg = svfa.svg
+    cd = cda.cd
 
     mergeDFPAndCD() //pdg
 
@@ -235,6 +246,10 @@ abstract class JPDG extends JCD with JDFP   {
       conflicts.filter(p => p.nonEmpty).toSet
     }
   }
+
+  def createNode(method: SootMethod, stmt: soot.Unit): StatementNode =
+    pdg.createNode(method, stmt, analyze)
+
 
   def createDefEdgeLabel(source: soot.Unit, target: soot.Unit, method: SootMethod): DefLabelType = {
     val statement = br.ufpe.cin.soot.graph.Statement(method.getDeclaringClass.toString, method.getSignature, source.toString, source.getJavaSourceStartLineNumber)
