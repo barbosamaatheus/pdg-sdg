@@ -1,4 +1,4 @@
-package br.ufpe.cin.soot.svfa.jimple.rules
+package br.ufpe.cin.soot.analysis.jimple.rules
 
 import soot.SootMethod
 import soot.jimple.Stmt

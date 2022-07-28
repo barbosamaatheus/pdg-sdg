@@ -1,4 +1,4 @@
-package br.ufpe.cin.soot.svfa.jimple
+package br.ufpe.cin.soot.analysis.jimple
 
 trait Analysis {
   def interprocedural() : Boolean

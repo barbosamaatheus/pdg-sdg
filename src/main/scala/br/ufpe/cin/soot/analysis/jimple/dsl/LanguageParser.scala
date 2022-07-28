@@ -1,9 +1,9 @@
-package br.ufpe.cin.soot.svfa.jimple.dsl
+package br.ufpe.cin.soot.analysis.jimple.dsl
 
 import scala.util.parsing.combinator._
 import scala.util.matching.Regex
-import br.ufpe.cin.soot.svfa.jimple.rules.MethodRule
-import br.ufpe.cin.soot.svfa.jimple.JSVFA
+import br.ufpe.cin.soot.analysis.jimple.rules.MethodRule
+import br.ufpe.cin.soot.analysis.jimple.JSVFA
 
 import scala.collection.mutable.HashMap
 

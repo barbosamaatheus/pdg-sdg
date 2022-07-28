@@ -2,8 +2,8 @@ package br.ufpe.cin.dsl
 
 import br.ufpe.cin.soot.JSVFATest
 import br.ufpe.cin.soot.graph.{NodeType, SimpleNode}
-import br.ufpe.cin.soot.svfa.jimple.dsl.RuleFactory
-import br.ufpe.cin.soot.svfa.jimple.rules.{MethodRule, NativeRule}
+import br.ufpe.cin.soot.analysis.jimple.dsl.RuleFactory
+import br.ufpe.cin.soot.analysis.jimple.rules.{MethodRule, NativeRule}
 import org.scalatest.FunSuite
 
 class RuleFactoryTest {

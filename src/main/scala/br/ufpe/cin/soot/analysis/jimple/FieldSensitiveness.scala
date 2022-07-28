@@ -1,13 +1,13 @@
-package br.ufpe.cin.soot.svfa.jimple
+package br.ufpe.cin.soot.analysis.jimple
 
 trait FieldSensitiveness {
   def isFieldSensitiveAnalysis(): Boolean
 }
 
-trait FieldSenstive extends FieldSensitiveness {
+trait FieldSensitive extends FieldSensitiveness {
   override def isFieldSensitiveAnalysis(): Boolean = true
 }
 
-trait FieldInsenstive extends FieldSensitiveness {
+trait FieldInsensitive extends FieldSensitiveness {
   override def isFieldSensitiveAnalysis(): Boolean = false
 }

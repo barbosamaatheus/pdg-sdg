@@ -5,7 +5,6 @@ import soot.jimple.{AssignStmt, InvokeExpr, InvokeStmt}
 
 class StringBufferTest (leftchangedlines: Array[Int], rightchangedlines: Array[Int]) extends JSVFATest {
   override def getClassName(): String = "samples.StringBufferSample"
-
   override def getMainMethod(): String = "main"
 
   def this(){
