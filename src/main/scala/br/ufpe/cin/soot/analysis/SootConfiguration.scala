@@ -1,8 +1,9 @@
-package br.ufpe.cin.soot.svfa.jimple
+package br.ufpe.cin.soot.analysis
 
-import java.io.File
 import soot._
 import soot.options.Options
+
+import java.io.File
 import scala.collection.JavaConverters._
 
 sealed trait CG
@@ -29,11 +30,11 @@ abstract class SootConfiguration {
 
   def createSceneTransform(): (String, Transform)
 
-  def configurePackages(): List[String]
+  def configurePackages(): List[String] = List("cg", "wjtp")
 
-  def beforeGraphConstruction()
+  def beforeGraphConstruction(): scala.Unit = {}
 
-  def afterGraphConstruction()
+  def afterGraphConstruction(): scala.Unit = {}
 
   def callGraph(): CG = SPARK
 

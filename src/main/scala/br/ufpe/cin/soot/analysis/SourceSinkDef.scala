@@ -1,4 +1,4 @@
-package br.ufpe.cin.soot.svfa
+package br.ufpe.cin.soot.analysis
 
 import br.ufpe.cin.soot.graph.NodeType
 

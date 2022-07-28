@@ -1,4 +1,4 @@
-package br.ufpe.cin.soot.svfa.jimple
+package br.ufpe.cin.soot.analysis.jimple
 
 import br.ufpe.cin.soot.graph.{GraphNode, StatementNode}
 import soot.options.Options
@@ -17,13 +17,12 @@ import java.util
  * A Jimple based implementation of
  * Control Dependence Analysis.
  */
-trait JDFP extends JSVFA {
+trait JDFP extends JSVFA{
 
-  val allocationSitesDFP = scala.collection.mutable.HashMap.empty[soot.Value, soot.Unit]
   val traversedMethodsDF = scala.collection.mutable.Set.empty[SootMethod]
 
-  def buildDFP() { //Excluir
-    svg.enable
+  def buildDFP() {
+    svg.enableReturnEdge()
     buildSparseValueFlowGraph()
   }
 
@@ -46,7 +45,6 @@ trait JDFP extends JSVFA {
   class TransformerDFP extends SceneTransformer {
     override def internalTransform(phaseName: String, options: util.Map[String, String]): scala.Unit = {
       pointsToAnalysis = Scene.v().getPointsToAnalysis
-      initAllocationSitesDFP()
       Scene.v().getEntryPoints.forEach(method => {
         traverseDFP(method)
         methods = methods + 1
@@ -54,25 +52,7 @@ trait JDFP extends JSVFA {
     }
   }
 
-  def initAllocationSitesDFP(): scala.Unit = {
-    val listener = Scene.v().getReachableMethods.listener()
 
-    while(listener.hasNext) {
-      val m = listener.next().method()
-      if (m.hasActiveBody) {
-        val body = m.getActiveBody
-        body.getUnits.forEach(unit => {
-          if (unit.isInstanceOf[soot.jimple.AssignStmt]) {
-            val right = unit.asInstanceOf[soot.jimple.AssignStmt].getRightOp
-            if (right.isInstanceOf[NewExpr] || right.isInstanceOf[NewArrayExpr]) {// || right.isInstanceOf[StringConstant]) {
-              //            if (right.isInstanceOf[NewExpr] || right.isInstanceOf[NewArrayExpr] || right.isInstanceOf[StringConstant]) {
-              allocationSitesDFP += (right -> unit)
-            }
-          }
-        })
-      }
-    }
-  }
 
   def traverseDFP(method: SootMethod, forceNewTraversal: Boolean = false) : scala.Unit = {
     if((!forceNewTraversal) && (method.isPhantom || traversedMethodsDF.contains(method))) {
@@ -154,51 +134,4 @@ trait JDFP extends JSVFA {
       }
     })
   }
-
-  def copyRule(targetStmt: soot.Unit, local: Local, method: SootMethod, defs: SimpleLocalDefs) = {
-    defs.getDefsOfAt(local, targetStmt).forEach(sourceStmt => {
-      val source = createNode(method, sourceStmt)
-      val target = createNode(method, targetStmt)
-      updateGraph(source, target)
-    })
-  }
-
-  def loadRule(stmt: soot.Unit, ref: InstanceFieldRef, method: SootMethod, defs: SimpleLocalDefs) : scala.Unit =
-  {
-    val base = ref.getBase
-    // value field of a string.
-    val className = ref.getFieldRef.declaringClass().getName
-    if ((className == "java.lang.String") && ref.getFieldRef.name == "value") {
-      if (base.isInstanceOf[Local]) {
-        defs.getDefsOfAt(base.asInstanceOf[Local], stmt).forEach(source => {
-          val sourceNode = createNode(method, source)
-          val targetNode = createNode(method, stmt)
-          updateGraph(sourceNode, targetNode)
-        })
-      }
-      return;
-    }
-  }
-
-  def loadArrayRule(targetStmt: soot.Unit, ref: ArrayRef, method: SootMethod, defs: SimpleLocalDefs) : scala.Unit = {
-    val base = ref.getBase
-
-    if(base.isInstanceOf[Local]) {
-      val local = base.asInstanceOf[Local]
-
-      defs.getDefsOfAt(local, targetStmt).forEach(sourceStmt => {
-        val source = createNode(method, sourceStmt)
-        val target = createNode(method, targetStmt)
-        updateGraph(source, target)
-      })
-
-      val stores = arrayStores.getOrElseUpdate(local, List())
-      stores.foreach(sourceStmt => {
-        val source = createNode(method, sourceStmt)
-        val target = createNode(method, targetStmt)
-        updateGraph(source, target)
-      })
-    }
-  }
-
 }

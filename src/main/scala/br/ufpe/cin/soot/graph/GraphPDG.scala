@@ -56,11 +56,3 @@ case class DefLabelType(labelT: PDGType) extends EdgeLabel {
   override val labelType: LabelType = DefLabel
 }
 
-class AuxGraph extends Graph{
-
-  override def addEdge(source: GraphNode, target: GraphNode, label: EdgeLabel): Unit = {
-    implicit val factory = scalax.collection.edge.LkDiEdge
-    graph.addLEdge(source, target)(label)
-  }
-
-}

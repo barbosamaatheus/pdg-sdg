@@ -1,10 +1,10 @@
 package br.ufpe.cin.soot.pdg
 
 import br.ufpe.cin.soot.graph.{NodeType, SimpleNode, SinkNode, SourceNode}
-import br.ufpe.cin.soot.svfa.jimple.{FieldSenstive, Interprocedural, JSVFA, PropagateTaint}
+import br.ufpe.cin.soot.analysis.jimple.{FieldSensitive, Interprocedural, JSVFA, PropagateTaint}
 import soot.{Scene, SootMethod}
 
-class PDGDataSetTest extends JSVFA with Interprocedural with FieldSenstive  with PropagateTaint{
+class PDGDataSetTest extends JSVFA with Interprocedural with FieldSensitive  with PropagateTaint{
   def getClassName(): String = "com.metamx.druid.loading.S3SegmentPusher"
   def getMainMethod(): String = "push(File, DataSegment)"
 

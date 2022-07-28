@@ -1,6 +1,6 @@
-package br.ufpe.cin.soot.svfa.jimple.dsl
+package br.ufpe.cin.soot.analysis.jimple.dsl
 
-import br.ufpe.cin.soot.svfa.SVFA
+import br.ufpe.cin.soot.analysis.SVFA
 
 trait DSL {
   this : SVFA =>

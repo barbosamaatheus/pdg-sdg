@@ -1,9 +1,9 @@
 package br.ufpe.cin.soot
 
-import br.ufpe.cin.soot.svfa.jimple.{FieldSenstive, Interprocedural, JSVFA, PropagateTaint}
+import br.ufpe.cin.soot.analysis.jimple.{FieldSensitive, Interprocedural, JSVFA, PropagateTaint}
 import soot.{Scene, SootMethod}
 
-abstract class JSVFATest extends JSVFA with Interprocedural with FieldSenstive with PropagateTaint {
+abstract class JSVFATest extends JSVFA with Interprocedural with FieldSensitive with PropagateTaint {
   def getClassName(): String
   def getMainMethod(): String
 

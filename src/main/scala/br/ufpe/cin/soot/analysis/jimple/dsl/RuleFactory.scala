@@ -1,7 +1,7 @@
-package br.ufpe.cin.soot.svfa.jimple.dsl
+package br.ufpe.cin.soot.analysis.jimple.dsl
 
-import br.ufpe.cin.soot.svfa.jimple.JSVFA
-import br.ufpe.cin.soot.svfa.jimple.rules._
+import br.ufpe.cin.soot.analysis.jimple.JSVFA
+import br.ufpe.cin.soot.analysis.jimple.rules._
 
 import scala.collection.mutable.HashMap
 
