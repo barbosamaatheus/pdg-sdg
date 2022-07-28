@@ -1,10 +1,12 @@
-package br.ufpe.cin.soot.svfa.jimple
+package br.ufpe.cin.soot.analysis.jimple
 
-import br.ufpe.cin.soot.graph.{CallSiteLabel, CallSiteOpenLabel, DefLabel, DefLabelType, EdgeLabel, FalseLabelType, GraphNode, SinkNode, SourceNode, StatementNode, TrueLabelType}
-import soot.jimple._
+import br.ufpe.cin.soot.graph.{DefLabel, DefLabelType, EdgeLabel, Graph, GraphNode, StatementNode}
+import br.ufpe.cin.soot.analysis.{SootConfiguration, SourceSinkDef}
+import com.typesafe.scalalogging.LazyLogging
 import soot.options.Options
-import soot.toolkits.graph.{ExceptionalBlockGraph}
+import soot.toolkits.graph.ExceptionalBlockGraph
 import soot.{PackManager, Scene, SceneTransformer, SootMethod, Transform}
+
 import java.util
 
 
@@ -12,24 +14,33 @@ import java.util
  * A Jimple based implementation of
  * Control Dependence Analysis.
  */
-abstract class JPDG extends JCD with JDFP   {
+abstract class JPDG extends SootConfiguration with Analysis with FieldSensitiveness with ObjectPropagation with SourceSinkDef with LazyLogging{
 
-  val allocationSitesPDG = scala.collection.mutable.HashMap.empty[soot.Value, soot.Unit]
   val traversedMethodsPDG = scala.collection.mutable.Set.empty[SootMethod]
   var listDef : List[(AssignStmt, StatementNode, Int)] = List()
-  var pdg = new br.ufpe.cin.soot.graph.Graph()
+  var cd: Graph = _
+  var svg: Graph = _
+  var pdg = new Graph()
   var hashSetUnit = new util.HashSet[(StatementNode, StatementNode, EdgeLabel)]
+  var methods: Integer = _
 
-  def buildPDG() {
+  def buildPDG(jcd: JCD, jdfp: JDFP) {
 
-    buildDFP()
-    buildCD()
+    jcd.cd.enableReturnEdge()
+    jdfp.svg.enableReturnEdge()
+    pdg.enableReturnEdge()
+
+    jcd.buildCD()
+    jdfp.buildDFP()
+
+    cd = jcd.cd
+    svg = jdfp.svg
 
     mergeDFPAndCD()
 
     Options.v().setPhaseOption("jb", "use-original-names:true")
 
-    val (pack, t) = createSceneTransformPDG()
+    val (pack, t) = createSceneTransform()
     PackManager.v().getPack(pack).add(t)
     configurePackages().foreach(p => PackManager.v().getPack(p).apply())
 
@@ -86,12 +97,11 @@ abstract class JPDG extends JCD with JDFP   {
     return null
   }
 
-  def createSceneTransformPDG(): (String, Transform) = ("wjtp", new Transform("wjtp.pdg", new TransformerPDG()))
+  override def createSceneTransform(): (String, Transform) = ("wjtp", new Transform("wjtp.pdg", new TransformerPDG()))
 
   class TransformerPDG extends SceneTransformer {
     override def internalTransform(phaseName: String, options: util.Map[String, String]): scala.Unit = {
       pointsToAnalysis = Scene.v().getPointsToAnalysis
-      initAllocationSitesPDG()
       Scene.v().getEntryPoints.forEach(method => {
         traversePDG(method)
         methods = methods + 1
@@ -99,25 +109,6 @@ abstract class JPDG extends JCD with JDFP   {
     }
   }
 
-  def initAllocationSitesPDG(): scala.Unit = {
-    val listener = Scene.v().getReachableMethods.listener()
-
-    while(listener.hasNext) {
-      val m = listener.next().method()
-      if (m.hasActiveBody) {
-        val body = m.getActiveBody
-        body.getUnits.forEach(unit => {
-          if (unit.isInstanceOf[soot.jimple.AssignStmt]) {
-            val right = unit.asInstanceOf[soot.jimple.AssignStmt].getRightOp
-            if (right.isInstanceOf[NewExpr] || right.isInstanceOf[NewArrayExpr]) {// || right.isInstanceOf[StringConstant]) {
-              //            if (right.isInstanceOf[NewExpr] || right.isInstanceOf[NewArrayExpr] || right.isInstanceOf[StringConstant]) {
-              allocationSitesPDG += (right -> unit)
-            }
-          }
-        })
-      }
-    }
-  }
 
   def traversePDG(method: SootMethod, forceNewTraversal: Boolean = false) : scala.Unit = {
     if((!forceNewTraversal) && (method.isPhantom || traversedMethodsPDG.contains(method))) {
@@ -189,7 +180,7 @@ abstract class JPDG extends JCD with JDFP   {
   }
 
   def traverseDef(assignStmt: AssignStmt, unit: soot.Unit, method: SootMethod, graph: ExceptionalBlockGraph) : Unit = {
-    val node = createNode(method, unit)
+    val node = pdg.createNode(method, unit, analyze)
     var branch = -1
 
     graph.forEach(block => {
@@ -202,39 +193,14 @@ abstract class JPDG extends JCD with JDFP   {
     listDef = listDef:+ (assignStmt, node, branch)
   }
 
-  def addDefEdge(source: GraphNode, target: GraphNode, label: EdgeLabel): Boolean = {
-    var res = false
-    if(!runInFullSparsenessMode() || true) {
-
-      addNodeAndEdgePDG(source.asInstanceOf[StatementNode], target.asInstanceOf[StatementNode], label)
-
-      res = true
-    }
-    return res
+  def addDefEdge(source: GraphNode, target: GraphNode, label: EdgeLabel): Unit = {
+    addNodeAndEdgePDG(source.asInstanceOf[StatementNode], target.asInstanceOf[StatementNode], label)
   }
 
-  def reportConflictsPDG(): scala.collection.Set[String] =
-    findConflictingPathsPDG().map(p => p.toString)
 
-  def findConflictingPathsPDG(): scala.collection.Set[List[GraphNode]] = {
-    if (pdg.fullGraph) {
-      val conflicts = pdg.findPathsFullGraph()
-      return conflicts.toSet
-    } else {
-      val sourceNodes = pdg.nodes.filter(n => n.nodeType == SourceNode)
-      val sinkNodes = pdg.nodes.filter(n => n.nodeType == SinkNode)
+  def createNode(method: SootMethod, stmt: soot.Unit): StatementNode =
+    pdg.createNode(method, stmt, analyze)
 
-      var conflicts: List[List[GraphNode]] = List()
-      sourceNodes.foreach(source => {
-        sinkNodes.foreach(sink => {
-          val paths = pdg.findPath(source, sink)
-          conflicts = conflicts ++ paths
-        })
-      })
-
-      conflicts.filter(p => p.nonEmpty).toSet
-    }
-  }
 
   def createDefEdgeLabel(source: soot.Unit, target: soot.Unit, method: SootMethod): DefLabelType = {
     val statement = br.ufpe.cin.soot.graph.Statement(method.getDeclaringClass.toString, method.getSignature, source.toString, source.getJavaSourceStartLineNumber)
@@ -242,39 +208,10 @@ abstract class JPDG extends JCD with JDFP   {
   }
 
   def pdgToDotModel(): String = {
-    val s = new StringBuilder
-    var nodeColor = ""
-    s ++= "digraph { \n"
-
-    for(n <- pdg.nodes) {
-      nodeColor = n.nodeType match  {
-        case SourceNode => "[fillcolor=blue, style=filled]"
-        case SinkNode   => "[fillcolor=red, style=filled]"
-        case _          => ""
-      }
-
-      s ++= " " + "\"" + n.show()+"\"" + nodeColor + "\n"
-    }
-
-    s  ++= "\n"
-
-    for (e <- pdg.edges) {
-      val edge = "\"" + e.from.show() + "\"" + " -> " + "\"" + e.to.show() + "\""
-      var l = e.label
-      val label: String = e.label match {
-        case c: CallSiteLabel =>  {
-          if (c.labelType == CallSiteOpenLabel) { "[label=\"cs(\"]" }
-          else { "[label=\"cs)\"]" }
-        }
-        case c: TrueLabelType =>{ "[penwidth=3][label=\"T\"]" }
-        case c: FalseLabelType => { "[penwidth=3][label=\"F\"]" }
-        case c: DefLabelType => { "[style=dashed, color=black]" }
-        case _ => ""
-      }
-      s ++= " " + edge + " " + label + "\n"
-    }
-    s ++= "}"
-    return s.toString()
+    pdg.toDotModel()
   }
 
+  def reportConflictsPDG() = {
+    pdg.reportConflicts()
+  }
 }

@@ -1,9 +1,9 @@
 package br.ufpe.cin.soot
 
-import br.ufpe.cin.soot.svfa.jimple.{FieldSenstive, Interprocedural, JPDG}
+import br.ufpe.cin.soot.analysis.jimple.{FieldSensitive, Interprocedural, JPDG, PropagateTaint}
 import soot.{Scene, SootMethod}
 
-abstract class JPDGTest extends JPDG with Interprocedural with FieldSenstive {
+abstract class JPDGTest extends JPDG  with Interprocedural with FieldSensitive with PropagateTaint{
   def getClassName(): String
   def getMainMethod(): String
 

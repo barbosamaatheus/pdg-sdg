@@ -1,15 +1,18 @@
 package br.ufpe.cin.soot
 
 import br.ufpe.cin.soot.graph.{NodeType, SimpleNode, SinkNode, SourceNode}
-import br.ufpe.cin.soot.svfa.jimple.PropagateTaint
+import br.ufpe.cin.soot.analysis.jimple.PropagateTaint
 import soot.jimple.{AssignStmt, InvokeExpr, InvokeStmt}
 
-class PDG2Test(leftchangedlines: Array[Int], rightchangedlines: Array[Int]) extends JPDGTest  with PropagateTaint{
-  override def getClassName(): String = "samples.PDG2"
-  override def getMainMethod(): String = "main"
+class DFPTestSlide1(leftchangedlines: Array[Int], rightchangedlines: Array[Int], className: String, mainMethod: String) extends JSVFATest  with PropagateTaint{
+  override def getClassName(): String = className
+  override def getMainMethod(): String = mainMethod
+
+//  override def getClassName(): String = "samples.SlideSample1"
+//  override def getMainMethod(): String = "cleanText"
 
   def this(){
-    this(Array.empty[Int], Array.empty[Int])
+    this(Array.empty[Int], Array.empty[Int], "", "")
   }
 
   override def analyze(unit: soot.Unit): NodeType = {

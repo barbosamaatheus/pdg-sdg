@@ -4,7 +4,6 @@ import br.ufpe.cin.soot.graph.{NodeType, SimpleNode, SinkNode, SourceNode}
 import soot.jimple.{AssignStmt, InvokeExpr, InvokeStmt}
 
 class ArrayTest(leftchangedlines: Array[Int], rightchangedlines: Array[Int]) extends JSVFATest {
-
   override def getClassName(): String = "samples.ArraySample"
   override def getMainMethod(): String = "main"
 

@@ -2,7 +2,7 @@ package br.ufpe.cin.dsl
 
 import br.ufpe.cin.soot.JSVFATest
 import br.ufpe.cin.soot.graph.{NodeType, SimpleNode}
-import br.ufpe.cin.soot.svfa.jimple.dsl.LanguageParser
+import br.ufpe.cin.soot.analysis.jimple.dsl.LanguageParser
 import org.scalatest.FunSuite
 
 class ParserTestSuite extends FunSuite {
