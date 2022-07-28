@@ -190,58 +190,32 @@ class TestSuite extends FunSuite with BeforeAndAfter {
     assert(pdg.reportConflictsPDG().size == 2)
   }
 
-<<<<<<< HEAD
-  test("we should correctly compute the number of nodes and edges in the PDGSlide sample") {
-    val pdg = new PDGTestSlide( Array (13), Array (15))
-    pdg.buildPDG()
-=======
   test("we should correctly compute the number of nodes and edges in the SlideSample sample with PDG") {
     val className = "samples.SlideSample"
-    val mainMethod = "main"
+    val mainMethod = "cleanText"
 
-    val pdg = new PDGTest( Array (9), Array (11), className, mainMethod)
-    jcd = new CDTest( Array (9), Array (11), className, mainMethod)
-    jdfp = new DFPTest( Array (9), Array (11), className, mainMethod)
+    val pdg = new PDGTest( Array (13), Array (15), className, mainMethod)
+    jcd = new CDTest( Array (13), Array (15), className, mainMethod)
+    jdfp = new DFPTest( Array (13), Array (15), className, mainMethod)
 
     pdg.buildPDG(jcd, jdfp)
 
->>>>>>> 8627d6eb2ddcbf0f1e926b5a8f9a1b18abed9f8e
     println(pdg.pdgToDotModel())
 
     assert(pdg.reportConflictsPDG().size >= 1)
   }
 
   test("we should correctly compute the number of nodes and edges in the CDSlide sample") {
-<<<<<<< HEAD
-    val cd = new CDTestSlide( Array (13), Array (15))
-=======
     val className = "samples.SlideSample"
-    val mainMethod = "main"
+    val mainMethod = "cleanText"
 
-    val cd = new CDTest( Array (9), Array (11), className, mainMethod)
+    val cd = new CDTest( Array (13), Array (15), className, mainMethod)
 
->>>>>>> 8627d6eb2ddcbf0f1e926b5a8f9a1b18abed9f8e
     cd.buildCD()
 
     println(cd.cd.toDotModel())
 
     assert(cd.cd.reportConflicts().size >= 1)
-  }
-
-  test("we should correctly compute the number of nodes and edges in the DFPSlide SlideSample1") {
-    val dfp = new DFPTestSlide1( Array (16, 23), Array (18, 19, 27))
-    dfp.buildSparseValueFlowGraph()
-    println(dfp.svgToDotModel())
-
-//    assert(dfp.reportConflicts().size >= 1)
-  }
-
-  test("we should correctly compute the number of nodes and edges in the DFPSlide SlideSample2") {
-    val dfp = new DFPTestSlide2( Array (13), Array (15))
-    dfp.buildSparseValueFlowGraph()
-    println(dfp.svgToDotModel())
-
-    //    assert(dfp.reportConflicts().size >= 1)
   }
 
   test("we should not find any conflict in the BlackBoardTest sample") {

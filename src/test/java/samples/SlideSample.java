@@ -10,21 +10,21 @@ public class SlideSample {
     }
 
     public void cleanText() {
-        if (text != null && hasWhiteSpace()){ //Left
+        if (text != null && hasWhiteSpace()){ //left
             normalizeWhiteSpaces();
-            removeDuplicatedWords(); //Right
+            removeDuplicatedWords(); //right
         }
     }
 
     private void removeDuplicatedWords() {
-        text = text.replace("aa", "");
+        text = text+"aa";
     }
 
     private boolean hasWhiteSpace() {
-        return text.contains(" ");
+        return true;
     }
 
     private void normalizeWhiteSpaces() {
-        text = text.replace("  ", " ");
+        text = text + "  ";
     }
 }
