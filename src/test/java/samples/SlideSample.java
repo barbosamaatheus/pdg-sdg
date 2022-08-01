@@ -6,21 +6,25 @@ public class SlideSample {
     public static void main(){
         SlideSample inst = new SlideSample();
 
-        if (inst.text != null && inst.hasWhiteSpace()){ //Left
-            inst.normalizeWhiteSpaces();
-            inst.removeDuplicatedWords(); //Right
+        inst.cleanText();
+    }
+
+    public void cleanText() {
+        if (text != null && hasWhiteSpace()){ //left
+            normalizeWhiteSpaces();
+            removeDuplicatedWords(); //right
         }
     }
 
     private void removeDuplicatedWords() {
-        text = text;
+        text = text+"aa";
     }
 
     private boolean hasWhiteSpace() {
-        return text.contains(" ");
+        return true;
     }
 
     private void normalizeWhiteSpaces() {
-        text = text;
+        text = text + "  ";
     }
 }

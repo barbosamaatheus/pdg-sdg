@@ -192,11 +192,11 @@ class TestSuite extends FunSuite with BeforeAndAfter {
 
   test("we should correctly compute the number of nodes and edges in the SlideSample sample with PDG") {
     val className = "samples.SlideSample"
-    val mainMethod = "main"
+    val mainMethod = "cleanText"
 
-    val pdg = new PDGTest( Array (9), Array (11), className, mainMethod)
-    jcd = new CDTest( Array (9), Array (11), className, mainMethod)
-    jdfp = new DFPTest( Array (9), Array (11), className, mainMethod)
+    val pdg = new PDGTest( Array (13), Array (15), className, mainMethod)
+    jcd = new CDTest( Array (13), Array (15), className, mainMethod)
+    jdfp = new DFPTest( Array (13), Array (15), className, mainMethod)
 
     pdg.buildPDG(jcd, jdfp)
 
@@ -207,9 +207,9 @@ class TestSuite extends FunSuite with BeforeAndAfter {
 
   test("we should correctly compute the number of nodes and edges in the CDSlide sample") {
     val className = "samples.SlideSample"
-    val mainMethod = "main"
+    val mainMethod = "cleanText"
 
-    val cd = new CDTest( Array (9), Array (11), className, mainMethod)
+    val cd = new CDTest( Array (13), Array (15), className, mainMethod)
 
     cd.buildCD()
 
