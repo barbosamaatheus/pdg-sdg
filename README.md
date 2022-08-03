@@ -1,6 +1,6 @@
-# SVFA (Sparse Value Flow Analysis) implementation based on Soot
+# PDG (Program Dependence Graph Analysis) implementation based on Soot
 
-This is a scala implementation of a framework that builds a sparse-value flow graph using Soot.
+This is a scala implementation of a framework that builds a pdg flow graph using Soot.
 
 ## Status
 
@@ -16,21 +16,24 @@ This is a scala implementation of a framework that builds a sparse-value flow gr
      ```
    * build this project using sbt (`sbt compile test`)
    * publish the artifact as a JAR file in your m2 repository (`sbt publish`)
-   * create a dependency to the svfa-scala artifact in your maven project. 
+   * create a dependency to the pdg-sdg artifact in your maven project. 
 
 ```{xml}
-<dependency>	
-  <groupId>br.unb.cic</groupId>
-  <artifactId>svfa-scala_2.12</artifactId>
-  <version>0.0.2-SNAPSHOT</version>
- </dependency>
+<dependency>
+  <groupId>br.ufpe.cin</groupId>
+  <artifactId>pdg-sdg_2.12</artifactId>
+  <version>0.3.0</version>
+</dependency>
 ```
 
-   * implement a class that extends the `JSVFA class` (see some examples in the scala tests). you must provide implementations to the following methods
-      * `getEntryPoints()` to set up the "main" methods. This implementation must return a list of Soot methods
-      * `sootClassPath()` to set up the soot classpath. This implementation must return a string
-      * `analyze(unit)` to identify the type of a node  (source, sink, simple node) in the graph; given a statement (soot unit)
-
+* Create a class with definition of sink and source tagging.
+* Create a class main to use the concrete class below.
+* Create a concrete DFP class, implement a class that extends the JDFP class. Add an attribute with the created definitions, you must provide implementations to the following methods:
+* `getEntryPoints()` to set up the "main" methods. This implementation must return a list of Soot methods
+* `sootClassPath()` to set up the soot classpath. This implementation must return a string
+* `analyze(unit)` to identify the type of a node (source, sink, simple node) in the graph; given a statement (soot unit)
+* Create a concrete CD class, implement a class that extends the JCD class, and do the implementations of the previous step.
+* Create a concrete PDG class, implement a class that extends the JPDG class, and do the implementations of the previous step. When calling PDG analysis, call CD and DFP with the same definitions and to call the buildPDG(cd, dfp) method.
 
 ## Dependencies
 
