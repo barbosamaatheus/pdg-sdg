@@ -1,8 +1,5 @@
 package br.ufpe.cin.soot.analysis.jimple
 
-import br.ufpe.cin.soot.graph.{GraphNode, StatementNode}
-import soot.options.Options
-
 import soot.{PackManager}
 
 import soot.jimple._
@@ -17,7 +14,7 @@ import java.util
  * A Jimple based implementation of
  * Control Dependence Analysis.
  */
-trait JDFP extends JSVFA{
+abstract class JDFP extends JSVFA{
 
   val traversedMethodsDF = scala.collection.mutable.Set.empty[SootMethod]
 

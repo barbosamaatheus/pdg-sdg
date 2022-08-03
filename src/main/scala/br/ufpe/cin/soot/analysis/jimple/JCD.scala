@@ -2,6 +2,7 @@ package br.ufpe.cin.soot.analysis.jimple
 
 import br.ufpe.cin.soot.graph._
 import br.ufpe.cin.soot.analysis.{SootConfiguration, SourceSinkDef}
+import com.typesafe.scalalogging.LazyLogging
 import soot.jimple._
 import soot.toolkits.graph.MHGPostDominatorsFinder
 import soot.{PackManager, Scene, SceneTransformer, SootMethod, Transform}
@@ -12,7 +13,7 @@ import java.util
  * A Jimple based implementation of
  * Control Dependence Analysis.
  */
-trait JCD extends SootConfiguration with FieldSensitive with SourceSinkDef {
+abstract class JCD extends SootConfiguration with FieldSensitive with Analysis with SourceSinkDef with LazyLogging{
 
   var cd = new br.ufpe.cin.soot.graph.Graph()
   val traversedMethodsCD = scala.collection.mutable.Set.empty[SootMethod]
@@ -212,6 +213,11 @@ trait JCD extends SootConfiguration with FieldSensitive with SourceSinkDef {
   def createNodeCD(method: SootMethod, stmt: soot.Unit): StatementNode =
     StatementNode(br.ufpe.cin.soot.graph.Statement(method.getDeclaringClass.toString, method.getSignature, stmt.toString, stmt.getJavaSourceStartLineNumber), analyze(stmt))
 
+  def cdToDotModel(): String = {
+    cd.toDotModel()
+  }
 
-
+  def reportConflictsCD() = {
+    cd.reportConflicts()
+  }
 }

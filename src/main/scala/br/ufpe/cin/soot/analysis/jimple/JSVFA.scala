@@ -14,11 +14,9 @@ import soot.jimple.spark.pag.{AllocNode, PAG}
 import soot.jimple.spark.sets.{DoublePointsToSet, HybridPointsToSet, P2SetVisitor}
 import soot.toolkits.graph.ExceptionalUnitGraph
 import soot.toolkits.scalar.SimpleLocalDefs
-import soot.{ArrayType, Local, Scene, SceneTransformer, SootField, SootMethod, Transform, jimple}
+import soot.{ArrayType, Local, Scene, SceneTransformer, SootField, SootMethod, Transform, Value, jimple}
 
 import scala.collection.mutable.ListBuffer
-
-
 
 /**
   * A Jimple based implementation of
@@ -49,8 +47,18 @@ abstract class JSVFA extends SVFA with Analysis with FieldSensitiveness with Obj
     def from: Int
 
     def apply(sootMethod: SootMethod, invokeStmt: jimple.Stmt, localDefs: SimpleLocalDefs) = {
-      val srcArg = invokeStmt.getInvokeExpr.getArg(from)
-      val expr = invokeStmt.getInvokeExpr
+      var srcArg: Value = null
+      var expr: InvokeExpr = null
+
+      try{
+        srcArg = invokeStmt.getInvokeExpr.getArg(from)
+        expr = invokeStmt.getInvokeExpr
+      }catch {
+        case e: Exception=>
+          srcArg = invokeStmt.getInvokeExpr.getArg(from)
+          expr = invokeStmt.getInvokeExpr
+          println("Entrou com errro!")
+      }
       if(hasBaseObject(expr) && srcArg.isInstanceOf[Local]) {
         val local = srcArg.asInstanceOf[Local]
 

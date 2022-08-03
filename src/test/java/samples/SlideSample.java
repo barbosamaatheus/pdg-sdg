@@ -1,7 +1,7 @@
 package samples;
 
 public class SlideSample {
-    public String text;
+    public String text = "test123";
 
     public static void main(){
         SlideSample inst = new SlideSample();
@@ -17,7 +17,7 @@ public class SlideSample {
     }
 
     private void removeDuplicatedWords() {
-        text = text+"aa";
+        text = text.replace("1", "2");
     }
 
     private boolean hasWhiteSpace() {
@@ -25,6 +25,6 @@ public class SlideSample {
     }
 
     private void normalizeWhiteSpaces() {
-        text = text + "  ";
+        text = text.replace("1", "2");
     }
 }
