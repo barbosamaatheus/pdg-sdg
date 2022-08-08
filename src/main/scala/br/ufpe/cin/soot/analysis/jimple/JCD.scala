@@ -18,6 +18,7 @@ abstract class JCD extends SootConfiguration with FieldSensitive with Analysis w
   var cd = new br.ufpe.cin.soot.graph.Graph()
   val traversedMethodsCD = scala.collection.mutable.Set.empty[SootMethod]
   var methods = 0
+  var omitExceptingUnitEdges = true
   def runInFullSparsenessMode() = true
 
   def buildCD() {
@@ -55,7 +56,7 @@ abstract class JCD extends SootConfiguration with FieldSensitive with Analysis w
 
     try {
       //Generate a unit graph from a method body
-      val unitGraph= new UnitGraphNodes(body)
+      val unitGraph= new UnitGraphNodes(body, omitExceptingUnitEdges)
 
       //Finder a post-dominator from a unit graph
       val analysis = new MHGPostDominatorsFinder(unitGraph)
@@ -95,6 +96,10 @@ abstract class JCD extends SootConfiguration with FieldSensitive with Analysis w
       }
     }
 
+  }
+
+  def setOmitExceptingUnitEdges(op: Boolean): Unit = {
+    omitExceptingUnitEdges = op
   }
 
 //  Add a control dependence edge from a node s to a node t with an edge type (True or False)
