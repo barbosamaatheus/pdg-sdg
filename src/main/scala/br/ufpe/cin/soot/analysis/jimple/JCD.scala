@@ -43,6 +43,7 @@ abstract class JCD extends SootConfiguration with FieldSensitive with Analysis w
     }
   }
 
+//  Loop through all the statements in jimple from a method and create the CD graph
   def traverseCD(method: SootMethod, forceNewTraversal: Boolean = false) : Unit = {
     if((!forceNewTraversal) && (method.isPhantom || traversedMethodsCD.contains(method))) {
       return
@@ -53,8 +54,10 @@ abstract class JCD extends SootConfiguration with FieldSensitive with Analysis w
     val body  = method.retrieveActiveBody()
 
     try {
-      val unitGraph= new UnitGraphNodes(body, false)
+      //Generate a unit graph from a method body
+      val unitGraph= new UnitGraphNodes(body)
 
+      //Finder a post-dominator from a unit graph
       val analysis = new MHGPostDominatorsFinder(unitGraph)
 
       unitGraph.forEach(unit => {
@@ -94,6 +97,7 @@ abstract class JCD extends SootConfiguration with FieldSensitive with Analysis w
 
   }
 
+//  Add a control dependence edge from a node s to a node t with an edge type (True or False)
   def addControlDependenceEdge(s: soot.Unit, t: soot.Unit, typeEdge: Boolean, method: SootMethod): Unit = {
     if (s.isInstanceOf[GotoStmt] || t.isInstanceOf[GotoStmt]) return
     val label = if (typeEdge) (createTrueEdgeLabel(s, t, method)) else (createFalseEdgeLabel(s, t, method))
@@ -115,10 +119,11 @@ abstract class JCD extends SootConfiguration with FieldSensitive with Analysis w
 
   }
 
+//  Create a node for a statment from a method to add to the graph cd
   def createNode(method: SootMethod, stmt: soot.Unit): StatementNode =
     cd.createNode(method, stmt, analyze)
 
-
+//  Checks if the graph already contains the node, before creating it
   def containsNodeCD(node: StatementNode): StatementNode = {
     for (n <- cd.edges()){
       var xx = n.from.asInstanceOf[StatementNode]
@@ -129,6 +134,7 @@ abstract class JCD extends SootConfiguration with FieldSensitive with Analysis w
     return null
   }
 
+//  Update the graph
   def addEdgeControlDependence(source: GraphNode, target: GraphNode, label: EdgeLabel): Boolean = {
     var res = false
     if(!runInFullSparsenessMode() || true) {

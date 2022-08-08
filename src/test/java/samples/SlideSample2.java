@@ -16,14 +16,14 @@ public class SlideSample2 {
     }
 
     private void removeDuplicatedWords() {
-        text = text.replace("aa", "");
+        text = text + "AA";
     }
 
     private void removeComments() {
-        text = text.replace("comments", "");
+        text = text + "comments";
     }
 
     private void normalizeWhiteSpaces() {
-        text = text.replace("  ", " ");
+        text = text + " ";
     }
 }

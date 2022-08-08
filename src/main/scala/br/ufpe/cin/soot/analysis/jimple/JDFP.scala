@@ -12,7 +12,7 @@ import java.util
 
 /**
  * A Jimple based implementation of
- * Control Dependence Analysis.
+ * SVFA Analysis with other statements: return and conditional.
  */
 abstract class JDFP extends JSVFA{
 
@@ -26,8 +26,8 @@ abstract class JDFP extends JSVFA{
   override def buildSparseValueFlowGraph() {
     configureSoot()
     beforeGraphConstruction()
-    val (pack1, t1) = createSceneTransform()
-    val (pack2, t2) = createSceneTransformDFP()
+    val (pack1, t1) = createSceneTransform() //createSceneTransform for SVFA
+    val (pack2, t2) = createSceneTransformDFP() //createSceneTransformDFP for DFP: add conditional and return statement
 
     PackManager.v().getPack(pack1).add(t1)
     PackManager.v().getPack(pack2).add(t2)
@@ -48,8 +48,6 @@ abstract class JDFP extends JSVFA{
       })
     }
   }
-
-
 
   def traverseDFP(method: SootMethod, forceNewTraversal: Boolean = false) : scala.Unit = {
     if((!forceNewTraversal) && (method.isPhantom || traversedMethodsDF.contains(method))) {

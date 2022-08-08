@@ -55,9 +55,9 @@ abstract class JSVFA extends SVFA with Analysis with FieldSensitiveness with Obj
         expr = invokeStmt.getInvokeExpr
       }catch {
         case e: Exception=>
-          srcArg = invokeStmt.getInvokeExpr.getArg(from)
-          expr = invokeStmt.getInvokeExpr
-          println("Entrou com errro!")
+//          srcArg = invokeStmt.getInvokeExpr.getArg(from)
+//          expr = invokeStmt.getInvokeExpr
+          println("Error with invoke statement!")
       }
       if(hasBaseObject(expr) && srcArg.isInstanceOf[Local]) {
         val local = srcArg.asInstanceOf[Local]

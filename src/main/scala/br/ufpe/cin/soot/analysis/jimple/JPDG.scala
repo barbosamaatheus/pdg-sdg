@@ -12,7 +12,7 @@ import java.util
 
 /**
  * A Jimple based implementation of
- * Control Dependence Analysis.
+ * Program Dependence Graph using a Control Dependence Graph and a SVFA + return and conditional edge
  */
 abstract class JPDG extends SootConfiguration with Analysis with FieldSensitiveness with ObjectPropagation with SourceSinkDef with LazyLogging{
 
@@ -47,10 +47,10 @@ abstract class JPDG extends SootConfiguration with Analysis with FieldSensitiven
     afterGraphConstruction()
   }
 
+//  Add the cd and svg graphs to the pdg graph
   def mergeDFPAndCD(): Unit = {
 
     //Add df+ edges in pdg
-
     for (e <- svg.edges()) {
       val from = e.from
       val label = e.label
@@ -59,7 +59,6 @@ abstract class JPDG extends SootConfiguration with Analysis with FieldSensitiven
     }
 
     //Add cd edges in pdg
-
     for (e <- cd.edges()) {
       val from = e.from
       val label = e.label
@@ -69,6 +68,7 @@ abstract class JPDG extends SootConfiguration with Analysis with FieldSensitiven
 
   }
 
+//  Updating the graph
   def addNodeAndEdgePDG(from: StatementNode, to: StatementNode, label: EdgeLabel): Unit = {
     var auxNodeFrom = containsNodePDG(from)
     var auxNodeTo = containsNodePDG(to)
@@ -87,6 +87,7 @@ abstract class JPDG extends SootConfiguration with Analysis with FieldSensitiven
     }
   }
 
+//  //  Checks if the graph already contains the node, before creating it
   def containsNodePDG(node: StatementNode): StatementNode = {
     for (n <- pdg.edges()){
       var nodeFrom = n.from.asInstanceOf[StatementNode]
@@ -109,7 +110,7 @@ abstract class JPDG extends SootConfiguration with Analysis with FieldSensitiven
     }
   }
 
-
+//  Add the other edges of the pdg graph: loop edge and def-order edge
   def traversePDG(method: SootMethod, forceNewTraversal: Boolean = false) : scala.Unit = {
     if((!forceNewTraversal) && (method.isPhantom || traversedMethodsPDG.contains(method))) {
       return
