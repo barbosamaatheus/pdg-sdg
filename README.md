@@ -41,4 +41,4 @@ This project use some of the [FlowDroid](https://github.com/secure-software-engi
 
 ## UML Class Diagram
 
-See the UML Class Diagram [here](/blob/main/UML%20Diagram.pdf).
+See the UML Class Diagram [here](/UML%20Diagram.pdf).
