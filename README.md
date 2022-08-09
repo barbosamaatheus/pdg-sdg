@@ -38,3 +38,7 @@ This is a scala implementation of a framework that builds a pdg flow graph using
 ## Dependencies
 
 This project use some of the [FlowDroid](https://github.com/secure-software-engineering/FlowDroid) test cases. The FlowDroid test cases in `src/test/java/securibench` are under [LGPL-2.1](https://github.com/secure-software-engineering/FlowDroid/blob/develop/LICENSE) license.
+
+## UML Class Diagram
+
+See the UML Class Diagram [here](UML Diagram.pdf).
