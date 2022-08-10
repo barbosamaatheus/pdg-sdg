@@ -23,5 +23,7 @@ abstract class SVFA extends SootConfiguration {
     svg.toDotModel()
   }
 
-
+  def reportConflictsSVG() = {
+    svg.reportConflicts()
+  }
 }

@@ -144,7 +144,7 @@ class BasicTestSuite extends FunSuite {
     val svfa = new BasicTest("securibench.micro.basic.Basic17", "doGet")
     svfa.buildSparseValueFlowGraph()
     println(svfa.svgToDotModel())
-    assert(svfa.svg.reportConflicts().size == 1)
+    assert(svfa.svg.reportConflicts().size == 2)
   }
 
   test("in the class Basic18 we should detect 1 conflict of a simple loop unrolling test case") {
@@ -210,7 +210,7 @@ class BasicTestSuite extends FunSuite {
   test("in the class Basic28 we should detect 2 conflicts in a complicated control flow test case") {
     val svfa = new BasicTest("securibench.micro.basic.Basic28", "doGet")
     svfa.buildSparseValueFlowGraph()
-    assert(svfa.svg.reportConflicts().size == 2)
+    assert(svfa.svg.reportConflicts().size == 1)
   }
 
   ignore("in the class Basic29 we should detect 2 conflicts in a recursive data structures test case") {

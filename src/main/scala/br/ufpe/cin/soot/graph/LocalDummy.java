@@ -11,6 +11,9 @@ import soot.util.Switch;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * Creating a Local to use when creating the Unit
+ */
 public class LocalDummy implements Local, ConvertToBaf {
      protected String name;
      Type type;

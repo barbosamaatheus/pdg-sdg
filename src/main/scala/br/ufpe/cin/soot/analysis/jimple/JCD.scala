@@ -2,6 +2,7 @@ package br.ufpe.cin.soot.analysis.jimple
 
 import br.ufpe.cin.soot.graph._
 import br.ufpe.cin.soot.analysis.{SootConfiguration, SourceSinkDef}
+import com.typesafe.scalalogging.LazyLogging
 import soot.jimple._
 import soot.toolkits.graph.MHGPostDominatorsFinder
 import soot.{PackManager, Scene, SceneTransformer, SootMethod, Transform}
@@ -12,11 +13,12 @@ import java.util
  * A Jimple based implementation of
  * Control Dependence Analysis.
  */
-trait JCD extends SootConfiguration with FieldSensitive with SourceSinkDef {
+abstract class JCD extends SootConfiguration with FieldSensitive with Analysis with SourceSinkDef with LazyLogging{
 
   var cd = new br.ufpe.cin.soot.graph.Graph()
   val traversedMethodsCD = scala.collection.mutable.Set.empty[SootMethod]
   var methods = 0
+  var omitExceptingUnitEdges = true
   def runInFullSparsenessMode() = true
 
   def buildCD() {
@@ -42,6 +44,7 @@ trait JCD extends SootConfiguration with FieldSensitive with SourceSinkDef {
     }
   }
 
+//  Loop through all the statements in jimple from a method and create the CD graph
   def traverseCD(method: SootMethod, forceNewTraversal: Boolean = false) : Unit = {
     if((!forceNewTraversal) && (method.isPhantom || traversedMethodsCD.contains(method))) {
       return
@@ -52,8 +55,10 @@ trait JCD extends SootConfiguration with FieldSensitive with SourceSinkDef {
     val body  = method.retrieveActiveBody()
 
     try {
-      val unitGraph= new UnitGraphNodes(body, false)
+      //Generate a unit graph from a method body
+      val unitGraph= new UnitGraphNodes(body, omitExceptingUnitEdges)
 
+      //Finder a post-dominator from a unit graph
       val analysis = new MHGPostDominatorsFinder(unitGraph)
 
       unitGraph.forEach(unit => {
@@ -93,6 +98,11 @@ trait JCD extends SootConfiguration with FieldSensitive with SourceSinkDef {
 
   }
 
+  def setOmitExceptingUnitEdges(op: Boolean): Unit = {
+    omitExceptingUnitEdges = op
+  }
+
+//  Add a control dependence edge from a node s to a node t with an edge type (True or False)
   def addControlDependenceEdge(s: soot.Unit, t: soot.Unit, typeEdge: Boolean, method: SootMethod): Unit = {
     if (s.isInstanceOf[GotoStmt] || t.isInstanceOf[GotoStmt]) return
     val label = if (typeEdge) (createTrueEdgeLabel(s, t, method)) else (createFalseEdgeLabel(s, t, method))
@@ -114,10 +124,11 @@ trait JCD extends SootConfiguration with FieldSensitive with SourceSinkDef {
 
   }
 
+//  Create a node for a statment from a method to add to the graph cd
   def createNode(method: SootMethod, stmt: soot.Unit): StatementNode =
     cd.createNode(method, stmt, analyze)
 
-
+//  Checks if the graph already contains the node, before creating it
   def containsNodeCD(node: StatementNode): StatementNode = {
     for (n <- cd.edges()){
       var xx = n.from.asInstanceOf[StatementNode]
@@ -128,6 +139,7 @@ trait JCD extends SootConfiguration with FieldSensitive with SourceSinkDef {
     return null
   }
 
+//  Update the graph
   def addEdgeControlDependence(source: GraphNode, target: GraphNode, label: EdgeLabel): Boolean = {
     var res = false
     if(!runInFullSparsenessMode() || true) {
@@ -212,6 +224,11 @@ trait JCD extends SootConfiguration with FieldSensitive with SourceSinkDef {
   def createNodeCD(method: SootMethod, stmt: soot.Unit): StatementNode =
     StatementNode(br.ufpe.cin.soot.graph.Statement(method.getDeclaringClass.toString, method.getSignature, stmt.toString, stmt.getJavaSourceStartLineNumber), analyze(stmt))
 
+  def cdToDotModel(): String = {
+    cd.toDotModel()
+  }
 
-
+  def reportConflictsCD() = {
+    cd.reportConflicts()
+  }
 }

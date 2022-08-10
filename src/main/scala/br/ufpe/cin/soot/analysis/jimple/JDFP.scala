@@ -1,8 +1,5 @@
 package br.ufpe.cin.soot.analysis.jimple
 
-import br.ufpe.cin.soot.graph.{GraphNode, StatementNode}
-import soot.options.Options
-
 import soot.{PackManager}
 
 import soot.jimple._
@@ -15,9 +12,9 @@ import java.util
 
 /**
  * A Jimple based implementation of
- * Control Dependence Analysis.
+ * SVFA Analysis with other statements: return and conditional.
  */
-trait JDFP extends JSVFA{
+abstract class JDFP extends JSVFA{
 
   val traversedMethodsDF = scala.collection.mutable.Set.empty[SootMethod]
 
@@ -29,8 +26,8 @@ trait JDFP extends JSVFA{
   override def buildSparseValueFlowGraph() {
     configureSoot()
     beforeGraphConstruction()
-    val (pack1, t1) = createSceneTransform()
-    val (pack2, t2) = createSceneTransformDFP()
+    val (pack1, t1) = createSceneTransform() //createSceneTransform for SVFA
+    val (pack2, t2) = createSceneTransformDFP() //createSceneTransformDFP for DFP: add conditional and return statement
 
     PackManager.v().getPack(pack1).add(t1)
     PackManager.v().getPack(pack2).add(t2)
@@ -51,8 +48,6 @@ trait JDFP extends JSVFA{
       })
     }
   }
-
-
 
   def traverseDFP(method: SootMethod, forceNewTraversal: Boolean = false) : scala.Unit = {
     if((!forceNewTraversal) && (method.isPhantom || traversedMethodsDF.contains(method))) {

@@ -14,7 +14,7 @@ class NewScalaGraphTest extends FunSuite {
 
     g.addEdge(FakeSouce, FakeSink)
 
-    assert(g.numberOfNodes() == 1)
+    assert(g.numberOfNodes() == 2)
     assert(g.numberOfEdges() == 1)
   }
 
