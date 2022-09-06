@@ -1,6 +1,5 @@
 package br.ufpe.cin.graph
 
-import br.ufpe.cin.soot.graph.Graph
 import org.scalatest.{BeforeAndAfter, FunSuite}
 
 class GraphTest extends FunSuite with BeforeAndAfter {

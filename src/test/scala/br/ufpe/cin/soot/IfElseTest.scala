@@ -1,6 +1,6 @@
 package br.ufpe.cin.soot
 
-import br.ufpe.cin.soot.graph.{NodeType, SimpleNode, SinkNode, SourceNode}
+import br.unb.cic.soot.graph.{NodeType, SimpleNode, SinkNode, SourceNode}
 import soot.jimple.{AssignStmt, InvokeExpr, InvokeStmt}
 
 class IfElseTest extends JSVFATest {

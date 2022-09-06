@@ -1,9 +1,9 @@
 package br.ufpe.cin.soot.analysis.jimple
 
-import soot.{PackManager}
-
+import br.unb.cic.soot.svfa.jimple.{AssignStmt, InvalidStmt, InvokeStmt, JSVFA, Statement}
+import soot.PackManager
 import soot.jimple._
-import soot.toolkits.graph.{ExceptionalUnitGraph}
+import soot.toolkits.graph.ExceptionalUnitGraph
 import soot.toolkits.scalar.SimpleLocalDefs
 import soot.{Local, Scene, SceneTransformer, SootMethod, Transform}
 

@@ -1,6 +1,7 @@
 package br.ufpe.cin.soot
 
-import br.ufpe.cin.soot.analysis.jimple.{FieldSensitive, Interprocedural, JCD, PropagateTaint}
+import br.ufpe.cin.soot.analysis.jimple.JCD
+import br.unb.cic.soot.svfa.jimple.{FieldSensitive, Interprocedural, PropagateTaint}
 import soot.{Scene, SootMethod}
 
 abstract class JCDTest extends JCD with Interprocedural with FieldSensitive with PropagateTaint {

@@ -1,6 +1,7 @@
 package br.ufpe.cin.soot
 
-import br.ufpe.cin.soot.analysis.jimple.{FieldSensitive, Interprocedural, JPDG, PropagateTaint}
+import br.ufpe.cin.soot.analysis.jimple.JPDG
+import br.unb.cic.soot.svfa.jimple.{FieldSensitive, Interprocedural, PropagateTaint}
 import soot.{Scene, SootMethod}
 
 abstract class JPDGTest extends JPDG  with Interprocedural with FieldSensitive with PropagateTaint{

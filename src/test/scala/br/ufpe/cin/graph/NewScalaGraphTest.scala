@@ -1,8 +1,7 @@
 package br.ufpe.cin.graph
 
-import br.ufpe.cin.soot.graph.{Graph, SimpleNode, SinkNode, SourceNode, StatementNode}
+import br.unb.cic.soot.graph.{Graph, SimpleNode, SinkNode, SourceNode, Statement, StatementNode}
 import org.scalatest.FunSuite
-import br.ufpe.cin.soot.graph.Statement
 
 class NewScalaGraphTest extends FunSuite {
 
