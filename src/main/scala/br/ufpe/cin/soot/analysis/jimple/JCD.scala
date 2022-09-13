@@ -1,7 +1,9 @@
 package br.ufpe.cin.soot.analysis.jimple
 
 import br.ufpe.cin.soot.graph._
-import br.ufpe.cin.soot.analysis.{SootConfiguration, SourceSinkDef}
+import br.unb.cic.soot.graph.{EdgeLabel, FalseLabel, FalseLabelType, GraphNode, SimpleNode, StatementNode, TrueLabel, TrueLabelType}
+import br.unb.cic.soot.svfa.{SootConfiguration, SourceSinkDef}
+import br.unb.cic.soot.svfa.jimple.{Analysis, FieldSensitive}
 import com.typesafe.scalalogging.LazyLogging
 import soot.jimple._
 import soot.toolkits.graph.MHGPostDominatorsFinder
@@ -15,7 +17,7 @@ import java.util
  */
 abstract class JCD extends SootConfiguration with FieldSensitive with Analysis with SourceSinkDef with LazyLogging{
 
-  var cd = new br.ufpe.cin.soot.graph.Graph()
+  var cd = new br.unb.cic.soot.graph.Graph()
   val traversedMethodsCD = scala.collection.mutable.Set.empty[SootMethod]
   var methods = 0
   var omitExceptingUnitEdges = true
@@ -180,7 +182,7 @@ abstract class JCD extends SootConfiguration with FieldSensitive with Analysis w
 
   def createEntryPointNode(method: SootMethod): StatementNode = {
     try {
-      return new StatementNode(br.ufpe.cin.soot.graph.Statement(method.getDeclaringClass.toString, method.getSignature, "Entry Point", 0), SimpleNode)
+      return new StatementNode(br.unb.cic.soot.graph.Statement(method.getDeclaringClass.toString, method.getSignature, "Entry Point", 0), SimpleNode)
     } catch {
       case e: NullPointerException => {
         println ("Error creating node, an invalid statement.")
@@ -191,7 +193,7 @@ abstract class JCD extends SootConfiguration with FieldSensitive with Analysis w
 
   def createStartNode(method: SootMethod): StatementNode = {
     try {
-      return new StatementNode(br.ufpe.cin.soot.graph.Statement(method.getDeclaringClass.toString, method.getSignature, "Start", 0), SimpleNode)
+      return new StatementNode(br.unb.cic.soot.graph.Statement(method.getDeclaringClass.toString, method.getSignature, "Start", 0), SimpleNode)
     } catch {
       case e: NullPointerException => {
         println ("Error creating node, an invalid statement.")
@@ -202,7 +204,7 @@ abstract class JCD extends SootConfiguration with FieldSensitive with Analysis w
 
   def createStopNode(method: SootMethod): StatementNode = {
     try {
-      return new StatementNode(br.ufpe.cin.soot.graph.Statement(method.getDeclaringClass.toString, method.getSignature, "Stop", 0), SimpleNode)
+      return new StatementNode(br.unb.cic.soot.graph.Statement(method.getDeclaringClass.toString, method.getSignature, "Stop", 0), SimpleNode)
     } catch {
       case e: NullPointerException => {
         println ("Error creating node, an invalid statement.")
@@ -212,17 +214,17 @@ abstract class JCD extends SootConfiguration with FieldSensitive with Analysis w
   }
 
   def createTrueEdgeLabel(source: soot.Unit, target: soot.Unit, method: SootMethod): EdgeLabel = {
-    val statement = br.ufpe.cin.soot.graph.Statement(method.getDeclaringClass.toString, method.getSignature, source.toString, source.getJavaSourceStartLineNumber)
+    val statement = br.unb.cic.soot.graph.Statement(method.getDeclaringClass.toString, method.getSignature, source.toString, source.getJavaSourceStartLineNumber)
     TrueLabelType(TrueLabel)
   }
 
   def createFalseEdgeLabel(source: soot.Unit, target: soot.Unit, method: SootMethod): EdgeLabel = {
-    val statement = br.ufpe.cin.soot.graph.Statement(method.getDeclaringClass.toString, method.getSignature, source.toString, source.getJavaSourceStartLineNumber)
+    val statement = br.unb.cic.soot.graph.Statement(method.getDeclaringClass.toString, method.getSignature, source.toString, source.getJavaSourceStartLineNumber)
     FalseLabelType(FalseLabel)
   }
 
   def createNodeCD(method: SootMethod, stmt: soot.Unit): StatementNode =
-    StatementNode(br.ufpe.cin.soot.graph.Statement(method.getDeclaringClass.toString, method.getSignature, stmt.toString, stmt.getJavaSourceStartLineNumber), analyze(stmt))
+    StatementNode(br.unb.cic.soot.graph.Statement(method.getDeclaringClass.toString, method.getSignature, stmt.toString, stmt.getJavaSourceStartLineNumber), analyze(stmt))
 
   def cdToDotModel(): String = {
     cd.toDotModel()

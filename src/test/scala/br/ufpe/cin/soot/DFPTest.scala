@@ -1,7 +1,6 @@
 package br.ufpe.cin.soot
 
-import br.ufpe.cin.soot.graph._
-import br.ufpe.cin.soot.analysis.jimple.PropagateTaint
+import br.unb.cic.soot.graph.{NodeType, SimpleNode, SinkNode, SourceNode}
 
 class DFPTest(leftchangedlines: Array[Int], rightchangedlines: Array[Int], className: String, mainMethod: String) extends JDFPTest {
   override def getClassName(): String = className

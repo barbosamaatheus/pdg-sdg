@@ -1,6 +1,7 @@
 package br.ufpe.cin.soot
 
-import br.ufpe.cin.soot.analysis.jimple.{FieldSensitive, Interprocedural, JDFP, PropagateTaint}
+import br.ufpe.cin.soot.analysis.jimple.JDFP
+import br.unb.cic.soot.svfa.jimple.{FieldSensitive, Interprocedural, PropagateTaint}
 import soot.{Scene, SootMethod}
 
 abstract class JDFPTest extends JDFP  with Interprocedural with FieldSensitive with PropagateTaint{

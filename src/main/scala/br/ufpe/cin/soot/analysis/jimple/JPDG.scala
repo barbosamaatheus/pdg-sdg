@@ -1,7 +1,8 @@
 package br.ufpe.cin.soot.analysis.jimple
 
-import br.ufpe.cin.soot.graph.{DefLabel, DefLabelType, EdgeLabel, Graph, GraphNode, StatementNode}
-import br.ufpe.cin.soot.analysis.{SootConfiguration, SourceSinkDef}
+import br.unb.cic.soot.graph.{DefLabel, DefLabelType, EdgeLabel, Graph, GraphNode, StatementNode}
+import br.unb.cic.soot.svfa.{SootConfiguration, SourceSinkDef}
+import br.unb.cic.soot.svfa.jimple.{Analysis, AssignStmt, FieldSensitiveness, ObjectPropagation, Statement}
 import com.typesafe.scalalogging.LazyLogging
 import soot.options.Options
 import soot.toolkits.graph.ExceptionalBlockGraph
@@ -204,7 +205,7 @@ abstract class JPDG extends SootConfiguration with Analysis with FieldSensitiven
 
 
   def createDefEdgeLabel(source: soot.Unit, target: soot.Unit, method: SootMethod): DefLabelType = {
-    val statement = br.ufpe.cin.soot.graph.Statement(method.getDeclaringClass.toString, method.getSignature, source.toString, source.getJavaSourceStartLineNumber)
+    val statement = br.unb.cic.soot.graph.Statement(method.getDeclaringClass.toString, method.getSignature, source.toString, source.getJavaSourceStartLineNumber)
     DefLabelType(DefLabel)
   }
 

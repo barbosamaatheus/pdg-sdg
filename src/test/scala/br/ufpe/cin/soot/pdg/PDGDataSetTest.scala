@@ -1,7 +1,7 @@
 package br.ufpe.cin.soot.pdg
 
-import br.ufpe.cin.soot.graph.{NodeType, SimpleNode, SinkNode, SourceNode}
-import br.ufpe.cin.soot.analysis.jimple.{FieldSensitive, Interprocedural, JSVFA, PropagateTaint}
+import br.unb.cic.soot.graph.{NodeType, SimpleNode, SinkNode, SourceNode}
+import br.unb.cic.soot.svfa.jimple.{FieldSensitive, Interprocedural, JSVFA, PropagateTaint}
 import soot.{Scene, SootMethod}
 
 class PDGDataSetTest extends JSVFA with Interprocedural with FieldSensitive  with PropagateTaint{

@@ -19,6 +19,8 @@ resolvers += "Local maven repository" at "file://"+Path.userHome.absolutePath+"/
 
 resolvers += Classpaths.typesafeReleases
 
+resolvers += "SVFA releases" at "https://maven.pkg.github.com/rbonifacio/svfa-scala/"
+
 libraryDependencies += "org.typelevel" %% "cats-core" % "1.6.0"
 
 libraryDependencies += "ca.mcgill.sable" % "soot" % "3.3.0"
@@ -34,5 +36,7 @@ libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.8" % "test"
 libraryDependencies += "javax.servlet" % "javax.servlet-api" % "3.0.1" % "provided"
 
 libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.2"
+
+libraryDependencies += "br.unb.cic" % "svfa-scala_2.12" % "0.2.0"
 
 parallelExecution in Test := false

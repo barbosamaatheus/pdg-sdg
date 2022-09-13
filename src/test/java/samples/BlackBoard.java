@@ -1,17 +1,17 @@
 package samples;
 
+import java.util.Arrays;
+import java.util.HashSet;
+
 public class BlackBoard {
-    public static int main(){
-        int sum, x;
-        sum = 0;
-        x = 1;
-        while (x < 11) {
-            if (x == 10){
-                sum = sum + 1;
-                x = x + 1;
-            }
-        }
-        return x + sum;
+    public static void main(){
+        HashSet hash = new HashSet<>(Arrays.asList(
+            1,
+            2,  //LEFT
+            3,
+            4,  //RIGHT
+            5
+        ));
     }
 }
 
