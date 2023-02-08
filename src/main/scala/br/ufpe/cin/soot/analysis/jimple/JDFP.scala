@@ -56,25 +56,35 @@ abstract class JDFP extends JSVFA{
 
     traversedMethodsDF.add(method)
 
-    val body  = method.retrieveActiveBody()
+    val body  = retrieveActiveBodySafely(method)
     val graph = new ExceptionalUnitGraph(body)
     val defs  = new SimpleLocalDefs(graph)
 
-    body.getUnits.forEach(unit => {
-      try{
-        val v = Statement.convert(unit)
+    if (body != null){
+      body.getUnits.forEach(unit => {
+        try{
+          val v = Statement.convert(unit)
 
-        v match {
-          case IfStmt(base) => traverse(IfStmt(base), method, defs) //if statment
-          case ReturnStmt(base) => traverse(ReturnStmt(base), method, defs) //return
-          case _ =>
+          v match {
+            case IfStmt(base) => traverse(IfStmt(base), method, defs) //if statment
+            case ReturnStmt(base) => traverse(ReturnStmt(base), method, defs) //return
+            case _ =>
+          }
+
+        }catch {
+          case e: Exception => return
         }
+      })
+    }
 
-      }catch {
-        case e: Exception => return
-      }
-    })
+  }
 
+  def retrieveActiveBodySafely(method: SootMethod) : soot.Body = {
+    try {
+      return method.retrieveActiveBody()
+    } catch {
+      case e: RuntimeException => return null
+    }
   }
 
   case class IfStmt(b: soot.Unit) extends Statement(b) {
