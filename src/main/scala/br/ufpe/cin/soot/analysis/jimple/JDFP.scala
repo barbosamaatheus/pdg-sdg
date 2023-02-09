@@ -80,10 +80,10 @@ abstract class JDFP extends JSVFA{
   }
 
   def retrieveActiveBodySafely(method: SootMethod) : soot.Body = {
-    try {
+    if (method.retrieveActiveBody() == null) {
+      return null
+    } else {
       return method.retrieveActiveBody()
-    } catch {
-      case e: RuntimeException => return null
     }
   }
 
