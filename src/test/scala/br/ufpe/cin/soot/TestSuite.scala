@@ -15,6 +15,18 @@ class TestSuite extends FunSuite with BeforeAndAfter {
     println(cd.cd.toDotModel())
   }
 
+  test("CD sample returning one conflict") {
+    val cd = new CDTest( Array (16), Array (18), "samples.CDExample", "main")
+    cd.buildCD()
+
+    println(cd.cd.reportConflicts().size)
+    println(cd.cd.toDotModel())
+
+    assert(cd.cd.nodes.size == 9)
+    assert(cd.cd.numberOfEdges() == 8)
+    assert(cd.reportConflictsCD().size == 1)
+  }
+
   test("DF+ BlackBoardTest sample") {
     val className = "samples.BlackBoard"
     val mainMethod = "main"
