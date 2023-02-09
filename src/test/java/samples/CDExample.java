@@ -38,17 +38,24 @@ public class CDExample {
 
 
     public static void removeDuplicateWords(){
-        String[] words = text.split(" ");
+        String result = "";
+        String allWords[];
 
-        Set<String> set = new HashSet<>();
-        for (String word : words) {
-            set.add(word);
+        allWords = text.split(" ");
+        for(int i = 0; i < allWords.length; i++) {
+            for(int j = i+1; j < allWords.length; j++) {
+                if(allWords[i].equals(allWords[j])) {
+                    allWords[j] = "#remove#";
+                }
+            }
         }
 
-        StringBuilder sb = new StringBuilder();
-        for (String word : set) {
-            sb.append(word).append(" ");
+        for(String word: allWords) {
+            if(word != "#remove#") {
+                result = result + word + " ";
+            }
         }
 
+        text = result;
     }
 }
