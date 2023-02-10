@@ -16,14 +16,14 @@ class TestSuite extends FunSuite with BeforeAndAfter {
   }
 
   test("CD sample returning one conflict") {
-    val cd = new CDTest( Array (16), Array (18), "samples.CDExample", "main")
+    val cd = new CDTest( Array (19), Array (21), "samples.CDExample", "cleanText")
     cd.buildCD()
 
     println(cd.cd.reportConflicts().size)
     println(cd.cd.toDotModel())
 
-    assert(cd.cd.nodes.size == 9)
-    assert(cd.cd.numberOfEdges() == 8)
+    assert(cd.cd.nodes.size == 10)
+    assert(cd.cd.numberOfEdges() == 9)
     assert(cd.reportConflictsCD().size == 1)
   }
 
