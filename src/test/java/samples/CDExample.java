@@ -41,24 +41,15 @@ public class CDExample {
 
 
     public void removeDuplicateWords(){
-        String result = "";
-        String allWords[];
-
-        allWords = text.split(" ");
-        for(int i = 0; i < allWords.length; i++) {
-            for(int j = i+1; j < allWords.length; j++) {
-                if(allWords[i].equals(allWords[j])) {
-                    allWords[j] = "#remove#";
-                }
+        String[] words = text.split(" ");
+        StringBuilder result = new StringBuilder(words[0]);
+        for (int i = 1; i < words.length; i++) {
+            if (!words[i].equals(words[i - 1])) {
+                result.append(" ");
+                result.append(words[i]);
             }
         }
 
-        for(String word: allWords) {
-            if(word != "#remove#") {
-                result = result + word + " ";
-            }
-        }
-
-        text = result;
+        text = result.toString();
     }
 }
