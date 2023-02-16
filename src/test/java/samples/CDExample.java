@@ -39,7 +39,6 @@ public class CDExample {
         }
     }
 
-
     public void removeDuplicateWords(){
         String[] words = text.split(" ");
         StringBuilder result = new StringBuilder(words[0]);

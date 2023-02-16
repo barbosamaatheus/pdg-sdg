@@ -7,6 +7,8 @@ import soot.toolkits.graph.ExceptionalUnitGraph
 import soot.toolkits.scalar.SimpleLocalDefs
 import soot.{Local, Scene, SceneTransformer, SootMethod, Transform}
 
+import java.io.{FileWriter, IOException}
+import java.text.{DecimalFormat, NumberFormat}
 import java.util
 
 
@@ -24,8 +26,8 @@ abstract class JDFP extends JSVFA{
   }
 
   override def buildSparseValueFlowGraph() {
-    configureSoot()
     beforeGraphConstruction()
+
     val (pack1, t1) = createSceneTransform() //createSceneTransform for SVFA
     val (pack2, t2) = createSceneTransformDFP() //createSceneTransformDFP for DFP: add conditional and return statement
 
