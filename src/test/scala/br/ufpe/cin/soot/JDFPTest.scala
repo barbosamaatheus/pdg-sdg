@@ -18,7 +18,7 @@ abstract class JDFPTest extends JDFP  with Interprocedural with FieldSensitive w
   }
 
   override def getIncludeList(): List[String] = List(
-      "java.lang.*",
-      "java.util.*"
+//      "java.lang.*",
+//      "java.util.*"
     )
 }
