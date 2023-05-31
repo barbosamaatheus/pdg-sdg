@@ -3,7 +3,7 @@ scalaVersion := "2.12.8"
 name := "pdg-sdg"
 organization := "br.ufpe.cin"
 
-version := "0.3.1.1"
+version := "0.4.18"
 
 githubOwner := "spgroup"
 githubRepository := "pdg-sdg"
@@ -19,7 +19,7 @@ resolvers += "Local maven repository" at "file://"+Path.userHome.absolutePath+"/
 
 resolvers += Classpaths.typesafeReleases
 
-resolvers += "SVFA releases" at "https://maven.pkg.github.com/rbonifacio/svfa-scala/"
+resolvers += "SVFA releases" at "https://maven.pkg.github.com/galilasmb/svfa-scala/"
 
 libraryDependencies += "org.typelevel" %% "cats-core" % "1.6.0"
 
@@ -35,8 +35,10 @@ libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.8" % "test"
 
 libraryDependencies += "javax.servlet" % "javax.servlet-api" % "3.0.1" % "provided"
 
+libraryDependencies += "javax.servlet" % "servlet-api" % "2.5" % "provided"
+
 libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.2"
 
-libraryDependencies += "br.unb.cic" % "svfa-scala_2.12" % "0.2.0"
+libraryDependencies += "br.unb.cic" % "svfa-scala_2.12" % "0.2.9"
 
 parallelExecution in Test := false

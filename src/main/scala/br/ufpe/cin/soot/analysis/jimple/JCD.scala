@@ -24,8 +24,6 @@ abstract class JCD extends SootConfiguration with FieldSensitive with Analysis w
   def runInFullSparsenessMode() = true
 
   def buildCD() {
-    configureSoot()
-
     beforeGraphConstruction()
     val (pack2, t2) = createSceneTransform()
     PackManager.v().getPack(pack2).add(t2)

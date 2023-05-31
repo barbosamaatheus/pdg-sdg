@@ -1,5 +1,6 @@
 package br.ufpe.cin.soot
 
+import br.ufpe.cin.soot.pdg.PDGDataSetTest
 import org.scalatest.{BeforeAndAfter, FunSuite}
 
 class TestSuite extends FunSuite with BeforeAndAfter {
@@ -9,10 +10,24 @@ class TestSuite extends FunSuite with BeforeAndAfter {
 
   test("CD BlackBoardTest sample") {
     val cd = new CDTest( Array (10), Array (12), "samples.BlackBoard", "main")
+    cd.configureSoot()
     cd.buildCD()
 
     println(cd.cd.reportConflicts().size)
     println(cd.cd.toDotModel())
+  }
+
+  test("CD sample returning one conflict") {
+    val cd = new CDTest( Array (19), Array (21), "samples.CDExample", "cleanText")
+    cd.configureSoot()
+    cd.buildCD()
+
+    println(cd.cd.reportConflicts().size)
+    println(cd.cd.toDotModel())
+
+    assert(cd.cd.nodes.size == 10)
+    assert(cd.cd.numberOfEdges() == 9)
+    assert(cd.reportConflictsCD().size == 1)
   }
 
   test("DF+ BlackBoardTest sample") {
@@ -20,6 +35,7 @@ class TestSuite extends FunSuite with BeforeAndAfter {
     val mainMethod = "main"
 
     val dfp = new DFPTest( Array (7), Array (8), className, mainMethod)
+    dfp.configureSoot()
     dfp.buildDFP()
     println(dfp.svgToDotModel())
   }
@@ -32,6 +48,7 @@ class TestSuite extends FunSuite with BeforeAndAfter {
     jcd = new CDTest(Array (7), Array (14), className, mainMethod)
     jdfp = new DFPTest(Array (7), Array (14), className, mainMethod)
 
+    pdg.configureSoot()
     pdg.buildPDG(jcd, jdfp)
 
     println(pdg.pdgToDotModel())
@@ -44,6 +61,7 @@ class TestSuite extends FunSuite with BeforeAndAfter {
     val pdg = new PDGTest( Array (7), Array (10), className, mainMethod)
     jcd = new CDTest(Array (7), Array (10), className, mainMethod)
     jdfp = new DFPTest(Array (7), Array (10), className, mainMethod)
+    pdg.configureSoot()
     pdg.buildPDG(jcd, jdfp)
 
     println(pdg.pdgToDotModel())
@@ -60,6 +78,7 @@ class TestSuite extends FunSuite with BeforeAndAfter {
     val pdg = new PDGTest( Array (7), Array (9), className, mainMethod)
     jcd = new CDTest(Array (7), Array (9), className, mainMethod)
     jdfp = new DFPTest(Array (7), Array (9), className, mainMethod)
+    pdg.configureSoot()
     pdg.buildPDG(jcd, jdfp)
     println(pdg.pdgToDotModel())
     assert(pdg.reportConflictsPDG().size == 1)
@@ -72,7 +91,7 @@ class TestSuite extends FunSuite with BeforeAndAfter {
     val pdg = new PDGTest( Array (6), Array (12), className, mainMethod)
     jcd = new CDTest(Array (6), Array (12), className, mainMethod)
     jdfp = new DFPTest(Array (6), Array (12), className, mainMethod)
-
+    pdg.configureSoot()
     pdg.buildPDG(jcd, jdfp)
     println(pdg.pdgToDotModel())
 
@@ -88,7 +107,7 @@ class TestSuite extends FunSuite with BeforeAndAfter {
     val pdg = new PDGTest( Array (10), Array (12), className, mainMethod)
     jcd = new CDTest( Array (10), Array (12), className, mainMethod)
     jdfp = new DFPTest( Array (10), Array (12), className, mainMethod)
-
+    pdg.configureSoot()
     pdg.buildPDG(jcd, jdfp)
 
     println(pdg.pdgToDotModel())
@@ -105,7 +124,7 @@ class TestSuite extends FunSuite with BeforeAndAfter {
     val pdg = new PDGTest( Array (5), Array (10), className, mainMethod)
     jcd = new CDTest( Array (5), Array (10), className, mainMethod)
     jdfp = new DFPTest( Array (5), Array (10), className, mainMethod)
-
+    pdg.configureSoot()
     pdg.buildPDG(jcd, jdfp)
 
     println(pdg.pdgToDotModel())
@@ -122,7 +141,7 @@ class TestSuite extends FunSuite with BeforeAndAfter {
     val pdg = new PDGTest( Array (10), Array (9), className, mainMethod)
     jcd = new CDTest( Array (10), Array (9), className, mainMethod)
     jdfp = new DFPTest( Array (10), Array (9), className, mainMethod)
-
+    pdg.configureSoot()
     pdg.buildPDG(jcd, jdfp)
 
     println(pdg.pdgToDotModel())
@@ -139,7 +158,7 @@ class TestSuite extends FunSuite with BeforeAndAfter {
     val pdg = new PDGTest( Array (9), Array (10), className, mainMethod)
     jcd = new CDTest( Array (9), Array (10), className, mainMethod)
     jdfp = new DFPTest( Array (9), Array (10), className, mainMethod)
-
+    pdg.configureSoot()
     pdg.buildPDG(jcd, jdfp)
 
     println(pdg.pdgToDotModel())
@@ -156,7 +175,7 @@ class TestSuite extends FunSuite with BeforeAndAfter {
     val pdg = new PDGTest( Array (7), Array (10), className, mainMethod)
     jcd = new CDTest( Array (7), Array (10), className, mainMethod)
     jdfp = new DFPTest( Array (7), Array (10), className, mainMethod)
-
+    pdg.configureSoot()
     pdg.buildPDG(jcd, jdfp)
 
     println(pdg.pdgToDotModel())
@@ -171,7 +190,7 @@ class TestSuite extends FunSuite with BeforeAndAfter {
     val pdg = new PDGTest( Array (6, 7), Array (9, 11), className, mainMethod)
     jcd = new CDTest( Array (6, 7), Array (9, 11), className, mainMethod)
     jdfp = new DFPTest( Array (6, 7), Array (9, 11), className, mainMethod)
-
+    pdg.configureSoot()
     pdg.buildPDG(jcd, jdfp)
 
     println(pdg.pdgToDotModel())
@@ -188,7 +207,7 @@ class TestSuite extends FunSuite with BeforeAndAfter {
     val pdg = new PDGTest( Array (13), Array (15), className, mainMethod)
     jcd = new CDTest( Array (13), Array (15), className, mainMethod)
     jdfp = new DFPTest( Array (13), Array (15), className, mainMethod)
-
+    pdg.configureSoot()
     pdg.buildPDG(jcd, jdfp)
 
     println(pdg.pdgToDotModel())
@@ -201,7 +220,7 @@ class TestSuite extends FunSuite with BeforeAndAfter {
     val mainMethod = "cleanText"
 
     val cd = new CDTest( Array (13), Array (15), className, mainMethod)
-
+    cd.configureSoot()
     cd.buildCD()
 
     println(cd.cd.toDotModel())
@@ -213,21 +232,24 @@ class TestSuite extends FunSuite with BeforeAndAfter {
     val className = "samples.BlackBoard"
     val mainMethod = "main"
 
-    val svfa = new CDTest(Array (10), Array (12), className, mainMethod)
-    svfa.buildCD()
-    print(svfa.cdToDotModel())
+    val cd = new CDTest(Array (10), Array (12), className, mainMethod)
+    cd.configureSoot()
+    cd.buildCD()
+    print(cd.cdToDotModel())
 //    assert(svfa.svg.reportConflicts().size == 0)
   }
 
 
   test("we should correctly compute the number of nodes and edges of the IfElseTest sample") {
     val svfa = new IfElseTest()
+    svfa.configureSoot()
     svfa.buildSparseValueFlowGraph()
     assert(svfa.svg.nodes.size == 16)
   }
 
   test("we should correctly compute the number of edges of the IfElseTest sample") {
     val svfa = new IfElseTest()
+    svfa.configureSoot()
     svfa.buildSparseValueFlowGraph()
     println(svfa.svgToDotModel())
     assert(svfa.svg.numberOfEdges() == 18)
@@ -235,21 +257,18 @@ class TestSuite extends FunSuite with BeforeAndAfter {
 
   test("we should find exactly one conflict in this analysis of the IfElseTest sample") {
     val svfa = new IfElseTest()
+    svfa.configureSoot()
     svfa.buildSparseValueFlowGraph()
     assert(svfa.svg.reportConflicts().size == 1)
   }
 
-
-  /*
-      test("running dataset scenery") {
-        val pdg = new PDGDataSetTest()
-        pdg.buildPDG()
-        println(pdg.pdg.nodes.size)
-        println(pdg.pdg.numberOfEdges())
-
-        println(pdg.reportConflictsPDG().size)
-        println(pdg.pdgToDotModel())
-
-       }
-  */
+//  test("running dataset scenery") {
+//    val dfp = new PDGDataSetTest()
+//    dfp.configureSoot()
+//    dfp.buildDFP()
+//
+//    println(dfp.reportConflictsSVG().size)
+//    println(dfp.reportConflictsSVG())
+//
+//  }
 }

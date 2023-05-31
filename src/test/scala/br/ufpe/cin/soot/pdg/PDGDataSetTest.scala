@@ -1,16 +1,17 @@
 package br.ufpe.cin.soot.pdg
 
+import br.ufpe.cin.soot.JDFPTest
 import br.unb.cic.soot.graph.{NodeType, SimpleNode, SinkNode, SourceNode}
 import br.unb.cic.soot.svfa.jimple.{FieldSensitive, Interprocedural, JSVFA, PropagateTaint}
 import soot.{Scene, SootMethod}
 
-class PDGDataSetTest extends JSVFA with Interprocedural with FieldSensitive  with PropagateTaint{
-  def getClassName(): String = "com.metamx.druid.loading.S3SegmentPusher"
-  def getMainMethod(): String = "push(File, DataSegment)"
+class PDGDataSetTest() extends JDFPTest {
+  def getClassName(): String = "retrofit.RestAdapter"
+  def getMainMethod(): String = "logAndReplaceRequest"
 
   override def sootClassPath(): String = ""
 
-  override def applicationClassPath(): List[String] = List("/media/galileu/Arquivos/Doutorado/Pesquisa/druid-services-0.2.8-SNAPSHOT-jar-with-dependencies.jar")
+  override def applicationClassPath(): List[String] = List("/media/galileu/Arquivos/Doutorado/Pesquisa/miningframework/output/files/retrofit/2b6c719c6645f8e48dca6d0047c752069d321bc4/original-without-dependencies/merge/retrofit-1.2.3-SNAPSHOT.jar")
 
   override def getEntryPoints(): List[SootMethod] = {
     val sootClass = Scene.v().getSootClass(getClassName())
@@ -23,11 +24,10 @@ class PDGDataSetTest extends JSVFA with Interprocedural with FieldSensitive  wit
     )
 
   override def analyze(unit: soot.Unit): NodeType = {
-    if (unit.getJavaSourceStartLineNumber == 66 || unit.getJavaSourceStartLineNumber == 118 ||
-        unit.getJavaSourceStartLineNumber == 139 || unit.getJavaSourceStartLineNumber == 110) {
+    if (unit.getJavaSourceStartLineNumber == 398) {
       return SinkNode
     }
-    if (unit.getJavaSourceStartLineNumber == 105 || unit.getJavaSourceStartLineNumber == 125) {
+    if (unit.getJavaSourceStartLineNumber == 369) {
       return SourceNode
     }
     return SimpleNode

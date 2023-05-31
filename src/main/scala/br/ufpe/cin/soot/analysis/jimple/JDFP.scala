@@ -7,6 +7,8 @@ import soot.toolkits.graph.ExceptionalUnitGraph
 import soot.toolkits.scalar.SimpleLocalDefs
 import soot.{Local, Scene, SceneTransformer, SootMethod, Transform}
 
+import java.io.{FileWriter, IOException}
+import java.text.{DecimalFormat, NumberFormat}
 import java.util
 
 
@@ -24,8 +26,8 @@ abstract class JDFP extends JSVFA{
   }
 
   override def buildSparseValueFlowGraph() {
-    configureSoot()
     beforeGraphConstruction()
+
     val (pack1, t1) = createSceneTransform() //createSceneTransform for SVFA
     val (pack2, t2) = createSceneTransformDFP() //createSceneTransformDFP for DFP: add conditional and return statement
 
@@ -56,25 +58,35 @@ abstract class JDFP extends JSVFA{
 
     traversedMethodsDF.add(method)
 
-    val body  = method.retrieveActiveBody()
+    val body  = retrieveActiveBodySafely(method)
     val graph = new ExceptionalUnitGraph(body)
     val defs  = new SimpleLocalDefs(graph)
 
-    body.getUnits.forEach(unit => {
-      try{
-        val v = Statement.convert(unit)
+    if (body != null){
+      body.getUnits.forEach(unit => {
+        try{
+          val v = Statement.convert(unit)
 
-        v match {
-          case IfStmt(base) => traverse(IfStmt(base), method, defs) //if statment
-          case ReturnStmt(base) => traverse(ReturnStmt(base), method, defs) //return
-          case _ =>
+          v match {
+            case IfStmt(base) => traverse(IfStmt(base), method, defs) //if statment
+            case ReturnStmt(base) => traverse(ReturnStmt(base), method, defs) //return
+            case _ =>
+          }
+
+        }catch {
+          case e: Exception => return
         }
+      })
+    }
 
-      }catch {
-        case e: Exception => return
-      }
-    })
+  }
 
+  def retrieveActiveBodySafely(method: SootMethod) : soot.Body = {
+    if (method.retrieveActiveBody() == null) {
+      return null
+    } else {
+      return method.retrieveActiveBody()
+    }
   }
 
   case class IfStmt(b: soot.Unit) extends Statement(b) {
