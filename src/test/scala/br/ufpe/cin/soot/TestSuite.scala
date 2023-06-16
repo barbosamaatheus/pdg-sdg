@@ -40,6 +40,19 @@ class TestSuite extends FunSuite with BeforeAndAfter {
     println(dfp.svgToDotModel())
   }
 
+  test("MotivatingDF sample") {
+    val className = "samples.MotivatingDF"
+    val mainMethod = "cleanText"
+
+    val dfp = new DFPTest( Array (9, 15), Array (11, 35), className, mainMethod)
+    dfp.configureSoot()
+    dfp.buildDFP()
+    println(dfp.svgToDotModel())
+    println(dfp.reportConflictsSVG().size)
+    println(dfp.reportConflictsSVG())
+    assert(dfp.reportConflictsSVG().size == 1)
+  }
+
   test("PDG BlackBoardTest sample") {
     val className = "samples.BlackBoard"
     val mainMethod = "main"
