@@ -257,7 +257,7 @@ class TestSuite extends FunSuite with BeforeAndAfter {
     val svfa = new IfElseTest()
     svfa.configureSoot()
     svfa.buildSparseValueFlowGraph()
-    assert(svfa.svg.nodes.size == 16)
+    assert(svfa.svg.nodes.size == 17)
   }
 
   test("we should correctly compute the number of edges of the IfElseTest sample") {
@@ -265,7 +265,7 @@ class TestSuite extends FunSuite with BeforeAndAfter {
     svfa.configureSoot()
     svfa.buildSparseValueFlowGraph()
     println(svfa.svgToDotModel())
-    assert(svfa.svg.numberOfEdges() == 18)
+    assert(svfa.svg.numberOfEdges() == 19)
   }
 
   test("we should find exactly one conflict in this analysis of the IfElseTest sample") {
