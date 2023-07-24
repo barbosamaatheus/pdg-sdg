@@ -40,6 +40,19 @@ class TestSuite extends FunSuite with BeforeAndAfter {
     println(dfp.svgToDotModel())
   }
 
+  test("MotivatingDF sample") {
+    val className = "samples.MotivatingDF"
+    val mainMethod = "cleanText"
+
+    val dfp = new DFPTest( Array (9, 15), Array (11, 35), className, mainMethod)
+    dfp.configureSoot()
+    dfp.buildDFP()
+    println(dfp.svgToDotModel())
+    println(dfp.reportConflictsSVG().size)
+    println(dfp.reportConflictsSVG())
+    assert(dfp.reportConflictsSVG().size == 1)
+  }
+
   test("PDG BlackBoardTest sample") {
     val className = "samples.BlackBoard"
     val mainMethod = "main"
@@ -244,7 +257,7 @@ class TestSuite extends FunSuite with BeforeAndAfter {
     val svfa = new IfElseTest()
     svfa.configureSoot()
     svfa.buildSparseValueFlowGraph()
-    assert(svfa.svg.nodes.size == 16)
+    assert(svfa.svg.nodes.size == 17)
   }
 
   test("we should correctly compute the number of edges of the IfElseTest sample") {
@@ -252,7 +265,7 @@ class TestSuite extends FunSuite with BeforeAndAfter {
     svfa.configureSoot()
     svfa.buildSparseValueFlowGraph()
     println(svfa.svgToDotModel())
-    assert(svfa.svg.numberOfEdges() == 18)
+    assert(svfa.svg.numberOfEdges() == 19)
   }
 
   test("we should find exactly one conflict in this analysis of the IfElseTest sample") {
