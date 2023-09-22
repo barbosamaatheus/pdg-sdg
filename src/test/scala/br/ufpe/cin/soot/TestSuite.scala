@@ -20,6 +20,7 @@ class TestSuite extends FunSuite with BeforeAndAfter {
   test("CD sample returning one conflict") {
     val cd = new CDTest( Array (19), Array (21), "samples.CDExample", "cleanText")
     cd.configureSoot()
+    cd.setOmitExceptingUnitEdges(false)
     cd.buildCD()
 
     println(cd.cd.reportConflicts().size)
@@ -44,7 +45,7 @@ class TestSuite extends FunSuite with BeforeAndAfter {
     val className = "samples.MotivatingDF"
     val mainMethod = "cleanText"
 
-    val dfp = new DFPTest( Array (9, 15), Array (11, 35), className, mainMethod)
+    val dfp = new DFPTest( Array (10, 16), Array (12, 36), className, mainMethod)
     dfp.configureSoot()
     dfp.buildDFP()
     println(dfp.svgToDotModel())
