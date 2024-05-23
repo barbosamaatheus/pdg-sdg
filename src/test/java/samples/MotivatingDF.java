@@ -6,9 +6,10 @@ public class MotivatingDF {
     private String text;
 
     public void cleanText(){
-        normalizeWhiteSpace(); //Left
-        removeComments();
-        removeDuplicateWords(); //Right
+        MotivatingDF inst = new MotivatingDF();
+        inst.normalizeWhiteSpace(); //Left
+        inst.removeComments();
+        inst.removeDuplicateWords(); //Right
     }
 
     private void normalizeWhiteSpace(){

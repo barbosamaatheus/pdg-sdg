@@ -1,5 +1,6 @@
 package br.ufpe.cin.soot.analysis.jimple
 
+import br.unb.cic.soot.graph.VisitedMethods
 import br.unb.cic.soot.svfa.jimple.{AssignStmt, InvalidStmt, InvokeStmt, JSVFA, Statement}
 import soot.PackManager
 import soot.jimple._
@@ -10,6 +11,7 @@ import soot.{Local, Scene, SceneTransformer, SootMethod, Transform}
 import java.io.{FileWriter, IOException}
 import java.text.{DecimalFormat, NumberFormat}
 import java.util
+import scala.collection.mutable.ListBuffer
 
 
 /**
@@ -45,13 +47,13 @@ abstract class JDFP extends JSVFA{
     override def internalTransform(phaseName: String, options: util.Map[String, String]): scala.Unit = {
       pointsToAnalysis = Scene.v().getPointsToAnalysis
       Scene.v().getEntryPoints.forEach(method => {
-        traverseDFP(method)
+        traverseDFP(method, new ListBuffer[VisitedMethods]())
         methods = methods + 1
       })
     }
   }
 
-  def traverseDFP(method: SootMethod, forceNewTraversal: Boolean = false) : scala.Unit = {
+  def traverseDFP(method: SootMethod, visitedMethods: ListBuffer[VisitedMethods], forceNewTraversal: Boolean = false) : scala.Unit = {
     if((!forceNewTraversal) && (method.isPhantom || traversedMethodsDF.contains(method))) {
       return
     }
@@ -66,10 +68,12 @@ abstract class JDFP extends JSVFA{
       body.getUnits.forEach(unit => {
         try{
           val v = Statement.convert(unit)
-
+          val auxVisitedMethod = new ListBuffer[VisitedMethods]()
+          auxVisitedMethod.++=(visitedMethods)
+          auxVisitedMethod += new VisitedMethods(method, unit, unit.getJavaSourceStartLineNumber)
           v match {
-            case IfStmt(base) => traverse(IfStmt(base), method, defs) //if statment
-            case ReturnStmt(base) => traverse(ReturnStmt(base), method, defs) //return
+            case IfStmt(base) => traverse(IfStmt(base), method, defs, visitedMethods) //if statment
+            case ReturnStmt(base) => traverse(ReturnStmt(base), method, defs, visitedMethods) //return
             case _ =>
           }
 
@@ -108,17 +112,17 @@ abstract class JDFP extends JSVFA{
       else InvalidStmt(base)
   }
 
-  def traverse(stmt: IfStmt, method: SootMethod, defs: SimpleLocalDefs) : scala.Unit = {
-    addEdgesFromIfStmt(stmt.base, method, defs)
+  def traverse(stmt: IfStmt, method: SootMethod, defs: SimpleLocalDefs, visitedMethods: ListBuffer[VisitedMethods]) : scala.Unit = {
+    addEdgesFromIfStmt(stmt.base, method, defs, visitedMethods)
   }
 
-  def addEdgesFromIfStmt(sourceStmt: soot.Unit, method: SootMethod, defs: SimpleLocalDefs) = {
+  def addEdgesFromIfStmt(sourceStmt: soot.Unit, method: SootMethod, defs: SimpleLocalDefs, visitedMethods: ListBuffer[VisitedMethods]) = {
 
     //Add useBoxes used in if statement
     sourceStmt.getUseAndDefBoxes.forEach(useBox => {
       if (useBox.getValue.isInstanceOf[Local]) {
         val local = useBox.getValue.asInstanceOf[soot.Local]
-        copyRule(sourceStmt, local, method, defs)
+        copyRule(sourceStmt, local, method, defs, visitedMethods)
       }
     })
 
@@ -129,14 +133,14 @@ abstract class JDFP extends JSVFA{
   }
 
 
-  def traverse(stmt: ReturnStmt, method: SootMethod, defs: SimpleLocalDefs) : scala.Unit = {
+  def traverse(stmt: ReturnStmt, method: SootMethod, defs: SimpleLocalDefs, visitedMethods: ListBuffer[VisitedMethods]) : scala.Unit = {
     val op = stmt.stmt.getUseBoxes
 
     op.forEach(useBox => {
       (useBox.getValue) match {
-        case (q: InstanceFieldRef) => loadRule(stmt.stmt, q, method, defs)
-        case (q: ArrayRef) => loadArrayRule(stmt.stmt, q, method, defs)
-        case (q: Local) => copyRule(stmt.stmt, q, method, defs)
+        case (q: InstanceFieldRef) => loadRule(stmt.stmt, q, method, defs, visitedMethods)
+        case (q: ArrayRef) => loadArrayRule(stmt.stmt, q, method, defs, visitedMethods)
+        case (q: Local) => copyRule(stmt.stmt, q, method, defs, visitedMethods)
         case _ =>
       }
     })

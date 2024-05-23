@@ -182,7 +182,7 @@ abstract class JPDG extends SootConfiguration with Analysis with FieldSensitiven
   }
 
   def traverseDef(assignStmt: AssignStmt, unit: soot.Unit, method: SootMethod, graph: ExceptionalBlockGraph) : Unit = {
-    val node = pdg.createNode(method, unit, analyze)
+    val node = pdg.createNode(method, unit, analyze, null)
     var branch = -1
 
     graph.forEach(block => {
@@ -201,7 +201,7 @@ abstract class JPDG extends SootConfiguration with Analysis with FieldSensitiven
 
 
   def createNode(method: SootMethod, stmt: soot.Unit): StatementNode =
-    pdg.createNode(method, stmt, analyze)
+    pdg.createNode(method, stmt, analyze, null)
 
 
   def createDefEdgeLabel(source: soot.Unit, target: soot.Unit, method: SootMethod): DefLabelType = {

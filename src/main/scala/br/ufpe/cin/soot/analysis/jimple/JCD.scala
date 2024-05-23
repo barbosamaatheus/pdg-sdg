@@ -126,7 +126,7 @@ abstract class JCD extends SootConfiguration with FieldSensitive with Analysis w
 
 //  Create a node for a statment from a method to add to the graph cd
   def createNode(method: SootMethod, stmt: soot.Unit): StatementNode =
-    cd.createNode(method, stmt, analyze)
+    cd.createNode(method, stmt, analyze, null)
 
 //  Checks if the graph already contains the node, before creating it
   def containsNodeCD(node: StatementNode): StatementNode = {
@@ -180,7 +180,7 @@ abstract class JCD extends SootConfiguration with FieldSensitive with Analysis w
 
   def createEntryPointNode(method: SootMethod): StatementNode = {
     try {
-      return new StatementNode(br.unb.cic.soot.graph.Statement(method.getDeclaringClass.toString, method.getSignature, "Entry Point", 0), SimpleNode)
+      return new StatementNode(br.unb.cic.soot.graph.Statement(method.getDeclaringClass.toString, method.getSignature, "Entry Point", 0), SimpleNode, null)
     } catch {
       case e: NullPointerException => {
         println ("Error creating node, an invalid statement.")
@@ -191,7 +191,7 @@ abstract class JCD extends SootConfiguration with FieldSensitive with Analysis w
 
   def createStartNode(method: SootMethod): StatementNode = {
     try {
-      return new StatementNode(br.unb.cic.soot.graph.Statement(method.getDeclaringClass.toString, method.getSignature, "Start", 0), SimpleNode)
+      return new StatementNode(br.unb.cic.soot.graph.Statement(method.getDeclaringClass.toString, method.getSignature, "Start", 0), SimpleNode, null)
     } catch {
       case e: NullPointerException => {
         println ("Error creating node, an invalid statement.")
@@ -202,7 +202,7 @@ abstract class JCD extends SootConfiguration with FieldSensitive with Analysis w
 
   def createStopNode(method: SootMethod): StatementNode = {
     try {
-      return new StatementNode(br.unb.cic.soot.graph.Statement(method.getDeclaringClass.toString, method.getSignature, "Stop", 0), SimpleNode)
+      return new StatementNode(br.unb.cic.soot.graph.Statement(method.getDeclaringClass.toString, method.getSignature, "Stop", 0), SimpleNode, null)
     } catch {
       case e: NullPointerException => {
         println ("Error creating node, an invalid statement.")
@@ -222,7 +222,7 @@ abstract class JCD extends SootConfiguration with FieldSensitive with Analysis w
   }
 
   def createNodeCD(method: SootMethod, stmt: soot.Unit): StatementNode =
-    StatementNode(br.unb.cic.soot.graph.Statement(method.getDeclaringClass.toString, method.getSignature, stmt.toString, stmt.getJavaSourceStartLineNumber), analyze(stmt))
+    StatementNode(br.unb.cic.soot.graph.Statement(method.getDeclaringClass.toString, method.getSignature, stmt.toString, stmt.getJavaSourceStartLineNumber), analyze(stmt), null)
 
   def cdToDotModel(): String = {
     cd.toDotModel()
