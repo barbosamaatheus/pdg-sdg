@@ -3,7 +3,7 @@ scalaVersion := "2.12.8"
 name := "pdg-sdg"
 organization := "br.ufpe.cin"
 
-version := "0.6.0"
+version := "0.7.0"
 
 githubOwner := "spgroup"
 githubRepository := "pdg-sdg"
@@ -39,6 +39,6 @@ libraryDependencies += "javax.servlet" % "servlet-api" % "2.5" % "provided"
 
 libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.2"
 
-libraryDependencies += "br.unb.cic" % "svfa-scala_2.12" % "0.6.2"
+libraryDependencies += "br.unb.cic" % "svfa-scala_2.12" % "0.7.0"
 
 parallelExecution in Test := false
