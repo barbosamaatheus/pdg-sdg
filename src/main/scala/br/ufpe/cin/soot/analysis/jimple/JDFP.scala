@@ -2,15 +2,13 @@ package br.ufpe.cin.soot.analysis.jimple
 
 import br.unb.cic.soot.graph.VisitedMethods
 import br.unb.cic.soot.svfa.jimple.{AssignStmt, InvalidStmt, InvokeStmt, JSVFA, Statement}
-import soot.PackManager
+import soot.{Local, PackManager, Scene, SceneTransformer, SootMethod, Transform}
 import soot.jimple._
 import soot.toolkits.graph.ExceptionalUnitGraph
 import soot.toolkits.scalar.SimpleLocalDefs
-import soot.{Local, Scene, SceneTransformer, SootMethod, Transform}
 
-import java.io.{FileWriter, IOException}
-import java.text.{DecimalFormat, NumberFormat}
 import java.util
+import scala.collection.convert.ImplicitConversions.`collection asJava`
 import scala.collection.mutable.ListBuffer
 
 
@@ -46,7 +44,7 @@ abstract class JDFP extends JSVFA{
   class TransformerDFP extends SceneTransformer {
     override def internalTransform(phaseName: String, options: util.Map[String, String]): scala.Unit = {
       pointsToAnalysis = Scene.v().getPointsToAnalysis
-      Scene.v().getEntryPoints.forEach(method => {
+      getAnalysisEntryPoint().forEach(method => {
         traverseDFP(method, new ListBuffer[VisitedMethods]())
         methods = methods + 1
       })
@@ -130,6 +128,10 @@ abstract class JDFP extends JSVFA{
 
   case class ReturnStmt(b: soot.Unit) extends Statement(b) {
     val stmt = base.asInstanceOf[soot.jimple.ReturnStmt]
+  }
+
+  def getAnalysisEntryPoint(): util.List[SootMethod] = {
+    Scene.v().getEntryPoints
   }
 
 

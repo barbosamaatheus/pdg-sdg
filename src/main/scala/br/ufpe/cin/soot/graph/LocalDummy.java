@@ -21,10 +21,6 @@ public class LocalDummy implements Local, ConvertToBaf {
      public LocalDummy(String name, Type type) {
           setName(name);
           setType(type);
-          Numberer<Local> numberer = Scene.v().getLocalNumberer();
-          if (numberer != null) {
-               numberer.add(this);
-          }
      }
 
      /** Returns true if the given object is structurally equal to this one. */
@@ -76,6 +72,11 @@ public class LocalDummy implements Local, ConvertToBaf {
      @Override
      public void setType(Type t) {
           this.type = t;
+     }
+
+     @Override
+     public boolean isStackLocal() {
+          return true;
      }
 
      @Override

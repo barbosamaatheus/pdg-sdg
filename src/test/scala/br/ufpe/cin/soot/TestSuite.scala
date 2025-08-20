@@ -126,9 +126,26 @@ class TestSuite extends FunSuite with BeforeAndAfter {
 
     println(pdg.pdgToDotModel())
 
-    assert(pdg.pdg.nodes.size == 9)
-    assert(pdg.pdg.numberOfEdges() == 13)
+    assert(pdg.pdg.nodes.size == 15)
+    assert(pdg.pdg.numberOfEdges() == 20)
     assert(pdg.reportConflictsPDG().size == 1)
+  }
+
+  test("we should correctly compute the number of nodes and edges in the PointerAnalysis sample") {
+    val className = "samples.PointerAnalysis.Text"
+    val mainMethod = "generateReport"
+
+
+    jdfp = new DFPTest(Array(11), Array(13), className, mainMethod)
+    jdfp.configureSoot()
+    jdfp.buildDFP()
+    jdfp.setPrintDepthVisitedMethods(true)
+
+    //println(jdfp.svgToDotModel())
+    println("traversedMethods: " + jdfp.traversedMethods)
+
+    println("conflictingPaths: " + jdfp.svg.findConflictingPaths())
+    assert(jdfp.reportConflictsSVG().size == 1)
   }
 
   test("we should correctly compute the number of nodes and edges in the PDG4 sample") {
@@ -144,7 +161,7 @@ class TestSuite extends FunSuite with BeforeAndAfter {
     println(pdg.pdgToDotModel())
 
     assert(pdg.pdg.nodes.size == 9)
-    assert(pdg.pdg.numberOfEdges() == 9)
+    assert(pdg.pdg.numberOfEdges() == 8)
     assert(pdg.reportConflictsPDG().size == 1)
   }
 
@@ -160,8 +177,8 @@ class TestSuite extends FunSuite with BeforeAndAfter {
 
     println(pdg.pdgToDotModel())
 
-    assert(pdg.pdg.nodes.size == 8)
-    assert(pdg.pdg.numberOfEdges() == 10)
+    assert(pdg.pdg.nodes.size == 12)
+    assert(pdg.pdg.numberOfEdges() == 14)
     assert(pdg.reportConflictsPDG().size >= 1)
   }
 
@@ -178,7 +195,7 @@ class TestSuite extends FunSuite with BeforeAndAfter {
     println(pdg.pdgToDotModel())
 
     assert(pdg.pdg.nodes.size == 8)
-    assert(pdg.pdg.numberOfEdges() == 8)
+    assert(pdg.pdg.numberOfEdges() == 7)
     assert(pdg.reportConflictsPDG().size == 0)
   }
 
@@ -210,7 +227,7 @@ class TestSuite extends FunSuite with BeforeAndAfter {
     println(pdg.pdgToDotModel())
 
     assert(pdg.pdg.nodes.size == 8)
-    assert(pdg.pdg.numberOfEdges() == 8)
+    assert(pdg.pdg.numberOfEdges() == 7)
     assert(pdg.reportConflictsPDG().size == 2)
   }
 
@@ -258,7 +275,7 @@ class TestSuite extends FunSuite with BeforeAndAfter {
     val svfa = new IfElseTest()
     svfa.configureSoot()
     svfa.buildSparseValueFlowGraph()
-    assert(svfa.svg.nodes.size == 17)
+    assert(svfa.svg.nodes.size == 22)
   }
 
   test("we should correctly compute the number of edges of the IfElseTest sample") {
@@ -266,7 +283,7 @@ class TestSuite extends FunSuite with BeforeAndAfter {
     svfa.configureSoot()
     svfa.buildSparseValueFlowGraph()
     println(svfa.svgToDotModel())
-    assert(svfa.svg.numberOfEdges() == 19)
+    assert(svfa.svg.numberOfEdges() == 29)
   }
 
   test("we should find exactly one conflict in this analysis of the IfElseTest sample") {
