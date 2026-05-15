@@ -2,12 +2,15 @@ package br.ufpe.cin.soot.analysis.jimple
 
 import br.unb.cic.soot.graph.VisitedMethods
 import br.unb.cic.soot.svfa.jimple.{AssignStmt, InvalidStmt, InvokeStmt, JSVFA, Statement}
+import com.google.common.base.Stopwatch
 import soot.{Local, PackManager, Scene, SceneTransformer, SootMethod, Transform}
 import soot.jimple._
 import soot.toolkits.graph.ExceptionalUnitGraph
 import soot.toolkits.scalar.SimpleLocalDefs
 
 import java.util
+import java.util.Collections
+import java.util.concurrent.TimeUnit
 import scala.collection.convert.ImplicitConversions.`collection asJava`
 import scala.collection.mutable.ListBuffer
 
@@ -19,6 +22,7 @@ import scala.collection.mutable.ListBuffer
 abstract class JDFP extends JSVFA{
 
   val traversedMethodsDF = scala.collection.mutable.Set.empty[SootMethod]
+  var packageExecutionTimes = new java.util.HashMap[String, java.lang.Long]()
 
   def buildDFP() {
     svg.enableReturnEdge()
@@ -34,10 +38,18 @@ abstract class JDFP extends JSVFA{
     PackManager.v().getPack(pack1).add(t1)
     PackManager.v().getPack(pack2).add(t2)
 
-    configurePackages().foreach(p => PackManager.v().getPack(p).apply())
+    configurePackages().foreach(p => {
+      val stopwatch = Stopwatch.createStarted
+      PackManager.v().getPack(p).apply()
+      val elapsedMs = stopwatch.elapsed(TimeUnit.MILLISECONDS)
+      packageExecutionTimes.put(p, elapsedMs)
+    })
 
     afterGraphConstruction()
   }
+
+  def getPackageExecutionTimes: java.util.Map[String, java.lang.Long] =
+    Collections.unmodifiableMap(packageExecutionTimes)
 
   def createSceneTransformDFP(): (String, Transform) = ("wjtp", new Transform("wjtp.dfp", new TransformerDFP()))
 
