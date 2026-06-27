@@ -3,7 +3,11 @@ scalaVersion := "2.12.8"
 name := "pdg-sdg"
 organization := "br.ufpe.cin"
 
-version := "0.4.42-SNAPSHOT"
+version := "0.7.2"
+
+// Configure Java 1.8
+javacOptions ++= Seq("-source", "1.8", "-target", "1.8")
+scalacOptions ++= Seq("-target:jvm-1.8")
 
 githubOwner := "spgroup"
 githubRepository := "pdg-sdg"
@@ -28,6 +32,6 @@ libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.8" % "test"
 libraryDependencies += "javax.servlet" % "javax.servlet-api" % "3.0.1" % "provided"
 libraryDependencies += "javax.servlet" % "servlet-api" % "2.5" % "provided"
 libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.2"
-libraryDependencies += "br.unb.cic" % "svfa-scala_2.12" % "0.5.15-SNAPSHOT"
+libraryDependencies += "br.unb.cic" % "svfa-scala_2.12" % "0.5.12"
 
 parallelExecution in Test := false
