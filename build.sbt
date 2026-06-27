@@ -3,7 +3,7 @@ scalaVersion := "2.12.8"
 name := "pdg-sdg"
 organization := "br.ufpe.cin"
 
-version := "0.7.2"
+version := "0.7.3"
 
 // Configure Java 1.8
 javacOptions ++= Seq("-source", "1.8", "-target", "1.8")
